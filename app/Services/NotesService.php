@@ -1,6 +1,6 @@
 <?php
 
-namespace app\Services;
+namespace App\Services;
 
 use GuzzleHttp\Promise\PromiseInterface;
 use Illuminate\Http\Client\RequestException;
@@ -32,11 +32,11 @@ class NotesService
         return $response;
     }
 
-    public function update(int $user_id, string $json_content): PromiseInterface|Response|null
+    public function updateOrCreate(int $user_id, string $json_content): PromiseInterface|Response|null
     {
         try {
             $response = Http::withBasicAuth(getenv($this->username_key), getenv($this->password_key))->retry(3)->timeout(15)
-                ->patch($this->base_url . "v1/notecontroller/update", ['user_id' => $user_id, 'json_content' => $json_content]);
+                ->patch($this->base_url . "v1/notecontroller/updateorcreate", ['user_id' => $user_id, 'json_content' => $json_content]);
         } catch (RequestException $exception) {
             return null;
         }
