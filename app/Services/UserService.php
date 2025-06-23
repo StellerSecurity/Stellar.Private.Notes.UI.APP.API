@@ -16,7 +16,7 @@ class UserService
     private string $password_key = "APPSETTING_API_PASSWORD_STELLAR_USER_API";
 
     public function __construct() {
-        $this->base_url = env('BASE_URL_URL_API');
+        $this->base_url = env('BASE_URL_USER_API');
     }
 
     /**
