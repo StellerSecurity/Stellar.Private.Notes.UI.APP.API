@@ -18,8 +18,6 @@ class NotesController
 
     private UserService $userService;
 
-    private int $user_id = 150;
-
     public function __construct(NotesService $notesService, NoteHelper $noteHelper, UserService $userService)
     {
         $this->notesService = $notesService;
