@@ -15,5 +15,6 @@ Route::prefix('v1')->group(function () {
 
     Route::prefix('notescontroller')->group(function () {
         Route::post('/update', [NotesController::class, 'update']);
+        Route::get('/dashboard', [NotesController::class, 'dashboard']);
     });
 });

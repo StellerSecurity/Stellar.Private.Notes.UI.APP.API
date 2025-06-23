@@ -19,6 +19,12 @@ class UserService
         $this->base_url = env('BASE_URL_USER_API');
     }
 
+    public function token(string $token) {
+        $response = Http::withBasicAuth(getenv($this->username_key), getenv($this->password_key))
+            ->get($this->base_url . "v1/personaltokencontroller/{$token}");
+        return $response;
+    }
+
     /**
      * @param string $id
      * @return Response
