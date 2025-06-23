@@ -10,6 +10,8 @@ use Illuminate\Http\Request;
 class LoginController extends Controller
 {
 
+    private string $token = "Stellar.Private.Notes.UI.APP.API";
+
     public function __construct(public UserService $userService)
     {}
 
@@ -26,7 +28,7 @@ class LoginController extends Controller
         $auth = $this->userService->auth([
             'username' => $username,
             'password' => $password,
-            'token' => 'Stellar.Private.Notes.UI.APP.API'
+            'token' => $this->token
         ])->object();
 
         return response()->json($auth);
@@ -42,7 +44,7 @@ class LoginController extends Controller
         $auth = $this->userService->create([
             'username' => $username,
             'password' => $password,
-            'token' => 'Stellar.Private.Notes.UI.APP.API'
+            'token' => $this->token
         ])->object();
 
         return response()->json($auth);
