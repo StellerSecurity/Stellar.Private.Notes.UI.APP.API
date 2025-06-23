@@ -12,11 +12,19 @@ class NotesController
 
     private NotesService $notesService;
 
-    public function __construct(NotesService $notesService)
+    private NoteHelper $noteHelper;
+
+    public function __construct(NotesService $notesService, NoteHelper $noteHelper)
     {
         $this->notesService = $notesService;
+        $this->noteHelper = $noteHelper;
     }
 
+    /**
+     * @param Request $request
+     * @return JsonResponse
+     * @throws \Illuminate\Http\Client\ConnectionException
+     */
     public function update(Request $request): JsonResponse
     {
 
@@ -29,9 +37,7 @@ class NotesController
 
         $json_content_decoded = base64_decode($json_content_encoded);
 
-        $note_helper = new NoteHelper();
-
-        if(!$note_helper->validateJsonString($json_content_decoded)) {
+        if(!$this->noteHelper->validateJsonString($json_content_decoded)) {
             return response()->json(['response_code' => 400]);
         }
 

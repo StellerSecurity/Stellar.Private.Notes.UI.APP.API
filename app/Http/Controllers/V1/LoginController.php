@@ -25,7 +25,8 @@ class LoginController extends Controller
 
         $auth = $this->userService->auth([
             'username' => $username,
-            'password' => $password
+            'password' => $password,
+            'token' => 'Stellar.Private.Notes.UI.APP.API'
         ])->object();
 
         return response()->json($auth);
@@ -40,10 +41,9 @@ class LoginController extends Controller
 
         $auth = $this->userService->create([
             'username' => $username,
-            'password' => $password
+            'password' => $password,
+            'token' => 'Stellar.Private.Notes.UI.APP.API'
         ])->object();
-
-
 
         return response()->json($auth);
 

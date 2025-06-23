@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use GuzzleHttp\Promise\PromiseInterface;
+use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Http\Client\RequestException;
 use Illuminate\Http\Client\Response;
 use Illuminate\Support\Facades\Http;
@@ -32,6 +33,14 @@ class NotesService
         return $response;
     }
 
+    /**
+     *
+     * We use the updateOrCreate method, as a user can have a fun-time and make their first note.
+     * @param int $user_id
+     * @param string $json_content
+     * @return PromiseInterface|Response|null
+     * @throws ConnectionException
+     */
     public function updateOrCreate(int $user_id, string $json_content): PromiseInterface|Response|null
     {
         try {

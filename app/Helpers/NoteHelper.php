@@ -12,7 +12,6 @@ class NoteHelper
 
         $notes = json_decode($json_string, true);
 
-
         if(!is_array($notes)) {
             return false;
         }
