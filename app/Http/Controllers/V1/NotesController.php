@@ -49,8 +49,6 @@ class NotesController
 
         $user_id = $token->token->tokenable_id;
 
-        // add validation for user token?...
-
         // base64 encoded.
         $json_content_encoded = $request->input('json_content_encoded');
 
