@@ -1,0 +1,62 @@
+<?php
+
+namespace app\Services;
+
+use GuzzleHttp\Promise\PromiseInterface;
+use Illuminate\Http\Client\RequestException;
+use Illuminate\Http\Client\Response;
+use Illuminate\Support\Facades\Http;
+
+
+class NotesService
+{
+
+    private string $base_url;
+
+    private $username_key = "APPSETTING_API_USERNAME_STELLAR_NOTES_API";
+
+    private $password_key = "APPSETTING_API_PASSWORD_STELLAR_NOTES_API";
+
+    public function __construct() {
+        $this->base_url = env('BASE_URL_NOTES_API');
+    }
+
+    public function getNotes(int $user_id): PromiseInterface|Response|null
+    {
+        try {
+            $response = Http::withBasicAuth(getenv($this->username_key), getenv($this->password_key))->retry(3)->timeout(15)
+                ->get($this->base_url . "v1/notecontroller/find?user_id={$user_id}");
+        } catch (RequestException $exception) {
+            return null;
+        }
+        return $response;
+    }
+
+    public function update(int $user_id, string $json_content): PromiseInterface|Response|null
+    {
+        try {
+            $response = Http::withBasicAuth(getenv($this->username_key), getenv($this->password_key))->retry(3)->timeout(15)
+                ->patch($this->base_url . "v1/notecontroller/update", ['user_id' => $user_id, 'json_content' => $json_content]);
+        } catch (RequestException $exception) {
+            return null;
+        }
+        return $response;
+    }
+
+    public function create(int $user_id, string $json_content): PromiseInterface|Response|null
+    {
+        try {
+            $response = Http::withBasicAuth(getenv($this->username_key), getenv($this->password_key))->retry(3)->timeout(15)
+                ->post($this->base_url . "v1/notecontroller/create", ['user_id' => $user_id, 'json_content' => $json_content]);
+        } catch (RequestException $exception) {
+            return null;
+        }
+        return $response;
+    }
+
+    public function deleteAllNotes(int $user_id)
+    {
+
+    }
+
+}
