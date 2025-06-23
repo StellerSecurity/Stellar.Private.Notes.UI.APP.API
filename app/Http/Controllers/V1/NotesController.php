@@ -4,6 +4,7 @@ namespace App\Http\Controllers\V1;
 
 use App\Helpers\NoteHelper;
 use App\Services\NotesService;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
 class NotesController
@@ -16,7 +17,7 @@ class NotesController
         $this->notesService = $notesService;
     }
 
-    public function update(Request $request)
+    public function update(Request $request): JsonResponse
     {
 
         $user_token = $request->input('user_token');
@@ -35,10 +36,13 @@ class NotesController
         }
 
         // validate token
+        $noteResponse = $this->notesService->updateOrCreate(150, $json_content_encoded);
 
-        $update = $this->notesService->updateOrCreate(0, $request);
+        if($noteResponse === null || !$noteResponse->ok()) {
+            return response()->json(['response_code' => 400]);
+        }
 
-        return $json_content_decoded;
+        return response()->json(['response_code' => 200]);
 
     }
 

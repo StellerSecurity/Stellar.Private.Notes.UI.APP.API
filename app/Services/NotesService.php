@@ -36,7 +36,7 @@ class NotesService
     {
         try {
             $response = Http::withBasicAuth(getenv($this->username_key), getenv($this->password_key))->retry(3)->timeout(15)
-                ->patch($this->base_url . "v1/notecontroller/updateorcreate", ['user_id' => $user_id, 'json_content' => $json_content]);
+                ->post($this->base_url . "v1/notecontroller/updateorcreate", ['user_id' => $user_id, 'json_content' => $json_content]);
         } catch (RequestException $exception) {
             return null;
         }
