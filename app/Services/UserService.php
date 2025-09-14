@@ -19,6 +19,20 @@ class UserService
         $this->base_url = env('BASE_URL_USER_API');
     }
 
+    public function sendresetpasswordlink(string $email, string $confirmation_code): PromiseInterface|Response
+    {
+        $response = Http::withBasicAuth(getenv($this->username_key), getenv($this->password_key))->retry(3)
+            ->post($this->base_url . "v1/usercontroller/sendresetpasswordlink?email=" . $email  . "&confirmation_code=" . $confirmation_code);
+        return $response;
+    }
+
+    public function verifyresetpasswordconfirmationcode(string $email, string $confirmation_code, string $new_password): PromiseInterface|Response
+    {
+        $response = Http::withBasicAuth(getenv($this->username_key), getenv($this->password_key))->retry(3)
+            ->post($this->base_url . "v1/usercontroller/verifyresetpasswordconfirmationcode",
+                ['email' => $email, 'confirmation_code' => $confirmation_code, 'new_password' => $new_password]);
+        return $response;
+    }
     public function token(string $token) {
         $response = Http::withBasicAuth(getenv($this->username_key), getenv($this->password_key))
             ->get($this->base_url . "v1/personaltokencontroller/{$token}");
@@ -33,13 +47,6 @@ class UserService
     {
         $response = Http::withBasicAuth(getenv($this->username_key),getenv($this->password_key))
             ->get($this->base_url . "v1/usercontroller/user/$id");
-        return $response;
-    }
-
-    public function sendresetpasswordlink(string $email): PromiseInterface|Response
-    {
-        $response = Http::withBasicAuth(getenv($this->username_key), getenv($this->password_key))->retry(3)
-            ->post($this->base_url . "v1/usercontroller/sendresetpasswordlink?email=" . $email);
         return $response;
     }
 
