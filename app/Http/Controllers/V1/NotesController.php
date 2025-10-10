@@ -36,10 +36,10 @@ class NotesController
         return response()->json($upload->object());
     }
 
-    public function delete(Request $request): JsonResponse
+    public function sync(Request $request): JsonResponse
     {
-        $delete = $this->notesService->delete($request->all());
-        return response()->json($delete->object());
+        $sync = $this->notesService->sync($request->all());
+        return response()->json($sync->object());
     }
 
     public function find(Request $request): JsonResponse

@@ -56,7 +56,7 @@ class NotesService
         return $response;
     }
 
-    public function delete(array $data): PromiseInterface|Response|null
+    public function sync(array $data): PromiseInterface|Response|null
     {
         try {
             $response = Http::withBasicAuth(getenv($this->username_key), getenv($this->password_key))->retry(3)->timeout(15)
