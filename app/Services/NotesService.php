@@ -22,50 +22,51 @@ class NotesService
         $this->base_url = env('BASE_URL_NOTES_API');
     }
 
-    public function getNotes(int $user_id): PromiseInterface|Response|null
+
+    public function upload(array $data): PromiseInterface|Response|null
     {
         try {
             $response = Http::withBasicAuth(getenv($this->username_key), getenv($this->password_key))->retry(3)->timeout(15)
-                ->get($this->base_url . "v1/notecontroller/find?user_id={$user_id}");
+                ->post($this->base_url . "v1/notecontroller/upload", $data);
         } catch (RequestException $exception) {
             return null;
         }
         return $response;
     }
 
-    /**
-     *
-     * We use the updateOrCreate method, as a user can have a fun-time and make their first note.
-     * @param int $user_id
-     * @param string $json_content
-     * @return PromiseInterface|Response|null
-     * @throws ConnectionException
-     */
-    public function updateOrCreate(int $user_id, string $json_content): PromiseInterface|Response|null
+    public function download(array $data): PromiseInterface|Response|null
     {
         try {
             $response = Http::withBasicAuth(getenv($this->username_key), getenv($this->password_key))->retry(3)->timeout(15)
-                ->post($this->base_url . "v1/notecontroller/updateorcreate", ['user_id' => $user_id, 'json_content' => $json_content]);
+                ->post($this->base_url . "v1/notecontroller/download", $data);
         } catch (RequestException $exception) {
             return null;
         }
         return $response;
     }
 
-    public function create(int $user_id, string $json_content): PromiseInterface|Response|null
+    public function find(string $id): PromiseInterface|Response|null
     {
         try {
             $response = Http::withBasicAuth(getenv($this->username_key), getenv($this->password_key))->retry(3)->timeout(15)
-                ->post($this->base_url . "v1/notecontroller/create", ['user_id' => $user_id, 'json_content' => $json_content]);
+                ->get($this->base_url . "v1/notecontroller/find?id=$id");
         } catch (RequestException $exception) {
             return null;
         }
         return $response;
     }
 
-    public function deleteAllNotes(int $user_id)
+    public function delete(array $data): PromiseInterface|Response|null
     {
-
+        try {
+            $response = Http::withBasicAuth(getenv($this->username_key), getenv($this->password_key))->retry(3)->timeout(15)
+                ->post($this->base_url . "v1/notecontroller/sync-plan", $data);
+        } catch (RequestException $exception) {
+            return null;
+        }
+        return $response;
     }
+
+
 
 }
