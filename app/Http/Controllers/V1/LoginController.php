@@ -39,14 +39,10 @@ class LoginController extends Controller
     public function create(Request $request): JsonResponse
     {
 
-        $username = $request->input('username');
-        $password = $request->input('password');
+        $data = $request->all();
+        $data['token'] = $this->token;
 
-        $auth = $this->userService->create([
-            'username' => $username,
-            'password' => $password,
-            'token' => $this->token
-        ])->object();
+        $auth = $this->userService->create($data)->object();
 
         return response()->json($auth);
 
