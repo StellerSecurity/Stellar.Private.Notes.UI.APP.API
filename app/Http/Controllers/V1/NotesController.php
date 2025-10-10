@@ -39,7 +39,13 @@ class NotesController
     public function delete(Request $request): JsonResponse
     {
         $delete = $this->notesService->delete($request->all());
-        return response()->json($delete);
+        return response()->json($delete->object());
+    }
+
+    public function find(Request $request): JsonResponse
+    {
+        $note = $this->notesService->find($request->input('id'));
+        return response()->json($note->object());
     }
 
     /**
