@@ -38,7 +38,7 @@ class NotesService
     {
         try {
             $response = Http::withBasicAuth(getenv($this->username_key), getenv($this->password_key))->retry(3)->timeout(15)
-                ->get($this->base_url . "v1/notecontroller/download", $data);
+                ->post($this->base_url . "v1/notecontroller/download", $data);
         } catch (RequestException $exception) {
             return null;
         }
