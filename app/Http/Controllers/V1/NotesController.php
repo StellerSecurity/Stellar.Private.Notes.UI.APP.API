@@ -33,7 +33,7 @@ class NotesController
     public function upload(Request $request): JsonResponse
     {
 
-        $token = $request->input('token');
+        $token = $request->bearerToken();
 
         $user = $this->userService->token($token)->object();
 
@@ -53,7 +53,7 @@ class NotesController
     public function sync(Request $request): JsonResponse
     {
 
-        $token = $request->input('token');
+        $token = $request->bearerToken();
 
         $user = $this->userService->token($token)->object();
 
@@ -73,7 +73,7 @@ class NotesController
     public function find(Request $request): JsonResponse
     {
 
-        $token = $request->input('token');
+        $token = $request->bearerToken();
 
         $user = $this->userService->token($token)->object();
 
@@ -94,12 +94,12 @@ class NotesController
     public function download(Request $request): JsonResponse
     {
 
-        $token = $request->input('token');
+        $token = $request->bearerToken();
 
         $user = $this->userService->token($token)->object();
 
         if(!isset($user->token->id)) {
-            return response()->json(null, 400);
+            return response()->json(['response_message' => 'Token not found'], 400);
         }
 
         $user_id = $user->token->id;
