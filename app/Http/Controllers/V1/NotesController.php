@@ -32,19 +32,58 @@ class NotesController
      */
     public function upload(Request $request): JsonResponse
     {
-        $upload = $this->notesService->upload($request->all());
+
+        $token = $request->input('token');
+
+        $user = $this->userService->token($token)->object();
+
+        if(!isset($user->token->id)) {
+            return response()->json(null, 400);
+        }
+
+        $user_id = $user->token->id;
+
+        $data = $request->all();
+        $data['user_id'] = $user_id;
+
+        $upload = $this->notesService->upload($data);
         return response()->json($upload->object());
     }
 
     public function sync(Request $request): JsonResponse
     {
-        $sync = $this->notesService->sync($request->all());
+
+        $token = $request->input('token');
+
+        $user = $this->userService->token($token)->object();
+
+        if(!isset($user->token->id)) {
+            return response()->json(null, 400);
+        }
+
+        $user_id = $user->token->id;
+
+        $data = $request->all();
+        $data['user_id'] = $user_id;
+
+        $sync = $this->notesService->sync($data);
         return response()->json($sync->object());
     }
 
     public function find(Request $request): JsonResponse
     {
-        $note = $this->notesService->find($request->input('id'));
+
+        $token = $request->input('token');
+
+        $user = $this->userService->token($token)->object();
+
+        if(!isset($user->token->id)) {
+            return response()->json(null, 400);
+        }
+
+        $user_id = $user->token->id;
+
+        $note = $this->notesService->find($request->input('id'), $user_id);
         return response()->json($note->object());
     }
 
@@ -55,7 +94,20 @@ class NotesController
     public function download(Request $request): JsonResponse
     {
 
-        $download = $this->notesService->download($request->all());
+        $token = $request->input('token');
+
+        $user = $this->userService->token($token)->object();
+
+        if(!isset($user->token->id)) {
+            return response()->json(null, 400);
+        }
+
+        $user_id = $user->token->id;
+
+        $data = $request->all();
+        $data['user_id'] = $user_id;
+
+        $download = $this->notesService->download($data);
         return response()->json($download->object());
 
     }

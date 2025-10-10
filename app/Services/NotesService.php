@@ -45,11 +45,11 @@ class NotesService
         return $response;
     }
 
-    public function find(string $id): PromiseInterface|Response|null
+    public function find(string $id, string $user_id): PromiseInterface|Response|null
     {
         try {
             $response = Http::withBasicAuth(getenv($this->username_key), getenv($this->password_key))->retry(3)->timeout(15)
-                ->get($this->base_url . "v1/notecontroller/find?id=$id");
+                ->post($this->base_url . "v1/notecontroller/find", ['id' => $id, 'user_id' => $user_id]);
         } catch (RequestException $exception) {
             return null;
         }
