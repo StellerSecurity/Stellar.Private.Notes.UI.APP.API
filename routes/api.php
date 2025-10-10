@@ -18,7 +18,7 @@ Route::prefix('v1')->group(function () {
 
     Route::prefix('notescontroller')->group(function () {
         Route::post('/upload', [NotesController::class, 'upload']);
-        Route::post('/sync-plan', [NotesController::class, 'syncPlan']);
+        Route::post('/sync-plan', [NotesController::class, 'sync']);
         Route::get('/download', [NotesController::class, 'download']);
         Route::get('/find', [NotesController::class, 'find']);
     });
