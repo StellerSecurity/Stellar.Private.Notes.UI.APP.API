@@ -61,7 +61,7 @@ class NotesController
             return response()->json(null, 400);
         }
 
-        $$user_id = $user->token->tokenable_id;
+        $user_id = $user->token->tokenable_id;
 
         $data = $request->all();
         $data['user_id'] = $user_id;
