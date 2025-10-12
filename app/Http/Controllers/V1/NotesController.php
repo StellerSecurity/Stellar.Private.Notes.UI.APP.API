@@ -41,7 +41,7 @@ class NotesController
             return response()->json(null, 400);
         }
 
-        $user_id = $user->token->id;
+        $user_id = $user->token->tokenable_id;
 
         $data = $request->all();
         $data['user_id'] = $user_id;
@@ -61,7 +61,7 @@ class NotesController
             return response()->json(null, 400);
         }
 
-        $user_id = $user->token->id;
+        $$user_id = $user->token->tokenable_id;
 
         $data = $request->all();
         $data['user_id'] = $user_id;
@@ -81,7 +81,7 @@ class NotesController
             return response()->json(null, 400);
         }
 
-        $user_id = $user->token->id;
+        $user_id = $user->token->tokenable_id;
 
         $note = $this->notesService->find($request->input('id'), $user_id);
         return response()->json($note->object());
@@ -98,11 +98,12 @@ class NotesController
 
         $user = $this->userService->token($token)->object();
 
+
         if(!isset($user->token->id)) {
             return response()->json(['response_message' => 'Token not found'], 400);
         }
 
-        $user_id = $user->token->id;
+        $user_id = $user->token->tokenable_id;
 
         $data = $request->all();
         $data['user_id'] = $user_id;
