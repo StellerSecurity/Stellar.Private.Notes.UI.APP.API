@@ -58,7 +58,7 @@ class LoginController extends Controller
             return response()->json(['response_code' => 400, 'response_message' => 'No email was provided']);
         }
 
-        $confirmation_code = Str::password(4, false, true, false, false);
+        $confirmation_code = Str::password(6, false, true, false, false);
         $resetpassword = $this->userService->sendresetpasswordlink($email, $confirmation_code)->object();
 
         if($resetpassword->response_code !== 200) {
