@@ -1,61 +1,170 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# Stellar Private Notes – End-to-End Encrypted Notes API
+Built by Stellar Security (Switzerland)
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+Stellar Private Notes is a **zero-knowledge, end-to-end encrypted** notes system.  
+All encryption and decryption happen **exclusively on the user’s device**.  
+The server never sees plaintext notes, passwords, or encryption keys.
 
-## About Laravel
+This repository contains the **Laravel 12 API** used by the mobile and web clients.
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+---
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+## 🔐 Key Principles
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+### **1. Zero-Knowledge Architecture**
+- All notes are encrypted locally using a 32-byte Master Key (MK).
+- The MK is wrapped (AES-GCM) using a Password Key (PK).
+- Only the encrypted MK (“EAK”) is uploaded to the server.
+- Server stores only:
+    - Encrypted notes
+    - Encrypted MK
+    - KDF parameters + salt
+    - User ID / timestamps
 
-## Learning Laravel
+**Stellar Security cannot decrypt user notes.  
+Only the user’s device can.**
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+### **2. Stellar ID is Optional**
+Users can:
+- Create a Stellar ID inside Stellar Notes, **or**
+- Log in using an existing Stellar ID created elsewhere (Stellar Security website, apps, etc.)
 
-You may also try the [Laravel Bootcamp](https://bootcamp.laravel.com), where you will be guided through building a modern Laravel application from scratch.
+If a user created their Stellar ID somewhere else, they may not initially have an EAK.  
+The API includes a safe `updateEak` endpoint to attach a new EAK to an existing account.
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+No EAK = user has never used an E2EE product before.  
+Once EAK is set, the account becomes fully compatible with Stellar Notes.
 
-## Laravel Sponsors
+---
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+## 🚀 Features
 
-### Premium Partners
+### ✔ Full End-to-End Encryption (AES-GCM 256)
+### ✔ PBKDF2 (SHA-256) with strong iteration count
+### ✔ Zero plaintext secrets ever leave the device
+### ✔ Server stores only opaque ciphertext blobs
+### ✔ Secure, token-based authentication (Laravel Sanctum)
+### ✔ Optional Stellar ID integration
+### ✔ Optimized for mobile offline sync
 
-- **[Vehikl](https://vehikl.com)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Redberry](https://redberry.international/laravel-development)**
-- **[Active Logic](https://activelogic.com)**
+---
 
-## Contributing
+## 🧠 How It Works (High-Level)
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+### 1. User logs in with password
+API returns user metadata + EAK blob (if exists).
 
-## Code of Conduct
+### 2. Client derives PK from password
+Using:
+```json
+{
+  "algo": "PBKDF2",
+  "hash": "SHA-256",
+  "iters": 210000,
+  "salt": "<base64>"
+}
+```
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+### 3. Client decrypts EAK
+Extracts the plaintext Master Key (MK), kept **only in RAM**.
 
-## Security Vulnerabilities
+### 4. Notes are encrypted
+- Every note uses AES-GCM( MK, random 12-byte IV )
+- Stored as `base64(iv || ciphertext)`
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+### 5. Server stores encrypted blobs only
+It cannot decrypt notes.
 
-## License
+---
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+## 📡 API Endpoints
+
+### **Auth / Account (Stellar ID – optional)**
+```
+POST   /v1/logincontroller/create
+POST   /v1/logincontroller/auth
+PATCH  /v1/logincontroller/updateEak   ← attach EAK if missing
+POST   /v1/logincontroller/sendresetpasswordlink
+POST   /v1/logincontroller/resetpasswordupdate
+```
+
+### **Notes**
+```
+POST /v1/notescontroller/upload
+POST /v1/notescontroller/sync-plan
+POST /v1/notescontroller/download
+POST /v1/notescontroller/find
+```
+
+---
+
+## 🛡 Security Notes
+
+- Laravel Sanctum tokens are used for stateless authentication.
+- Tokens are stored only in secure storage on the client.
+- User passwords are hashed using Laravel’s built-in hashing (bcrypt/argon2).
+- EAK, MK, and all note contents are **never** logged or stored in plaintext.
+- All encryption is done through WebCrypto on the client.
+
+---
+
+## ⚙ Deployment (Azure Ready)
+
+This project is optimized for Azure App Service / Container Apps.
+
+Important:  
+Add this in `bootstrap/app.php` for trusting Azure proxies:
+
+```php
+$middleware->trustProxies(
+    at: '*',
+    headers: Request::HEADER_X_FORWARDED_FOR
+        | Request::HEADER_X_FORWARDED_HOST
+        | Request::HEADER_X_FORWARDED_PORT
+        | Request::HEADER_X_FORWARDED_PROTO
+);
+```
+
+---
+
+## 🏗 Tech Stack
+- Laravel 12 (API)
+- Sanctum (Token auth)
+- MySQL / PostgreSQL
+- Azure App Service / Swiss Region
+- WebCrypto (on client)
+- AES-GCM 256
+- PBKDF2 SHA-256
+
+---
+
+## 🔒 Zero-Knowledge Guarantee
+
+This project is designed so that:
+
+- Stellar cannot decrypt user notes
+- No plaintext keys are transmitted
+- Only encrypted data lives on the server
+- Crypto is open-source and verifiable
+
+This is equivalent to industry-leading E2EE implementations like Signal, Proton, and Tresorit.
+
+---
+
+## 📄 License
+
+Open-source, for educational and transparency purposes.  
+Commercial usage permitted via Stellar SDK licensing.
+
+---
+
+## 💬 Contact
+
+For security inquiries or audits:
+
+**Stellar Security (Switzerland)**  
+https://stellarsecurity.com
+
+---
+
+Made with ❤️ by Stellar Security  
