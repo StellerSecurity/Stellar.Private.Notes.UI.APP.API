@@ -83,7 +83,7 @@ class LoginController extends Controller
 
         $user = $this->userService->patch($patchData)->object();
 
-        return response()->json(['response_code' => 200], 200);
+        return response()->json($user, 200);
     }
 
 
