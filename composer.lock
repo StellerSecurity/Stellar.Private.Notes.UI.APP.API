@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "85c1d2065f70e38b0d6bf66559fb13c5",
+    "content-hash": "0a6aac2ad25474f79208308e5b53f7ba",
     "packages": [
         {
             "name": "brick/math",
@@ -3335,6 +3335,50 @@
                 "source": "https://github.com/ramsey/uuid/tree/4.8.1"
             },
             "time": "2025-06-01T06:28:46+00:00"
+        },
+        {
+            "name": "stellarsecurity/user-laravel",
+            "version": "v1.0.2.4",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/StellarSecurity-Packages/stellarsecurity-user-laravel.git",
+                "reference": "5992feabf4d016c454a24892fcc13787c943db0a"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/StellarSecurity-Packages/stellarsecurity-user-laravel/zipball/5992feabf4d016c454a24892fcc13787c943db0a",
+                "reference": "5992feabf4d016c454a24892fcc13787c943db0a",
+                "shasum": ""
+            },
+            "require": {
+                "php": ">=8.1"
+            },
+            "type": "library",
+            "extra": {
+                "laravel": {
+                    "aliases": {
+                        "StellarUser": "StellarSecurity\\UserApiLaravel\\Facades\\StellarUser"
+                    },
+                    "providers": [
+                        "StellarSecurity\\UserApiLaravel\\StellarUserServiceProvider"
+                    ]
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "StellarSecurity\\UserApiLaravel\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "description": "Stellar Security - User API client for Laravel (register, login, password reset, profile lookups).",
+            "support": {
+                "issues": "https://github.com/StellarSecurity-Packages/stellarsecurity-user-laravel/issues",
+                "source": "https://github.com/StellarSecurity-Packages/stellarsecurity-user-laravel/tree/v1.0.2.4"
+            },
+            "time": "2025-11-29T23:28:06+00:00"
         },
         {
             "name": "symfony/clock",

@@ -10,7 +10,7 @@ Route::prefix('v1')->group(function () {
     Route::prefix('logincontroller')->group(function () {
         Route::post('/create', [LoginController::class, 'create']);
         Route::post('/auth', [LoginController::class, 'auth']);
-
+        Route::patch('/updateEak', [LoginController::class, 'updateEak']);
         Route::post('/sendresetpasswordlink', [LoginController::class, 'sendresetpasswordlink']);
         Route::post('/resetpasswordupdate', [LoginController::class, 'resetpasswordupdate']);
     });

@@ -4,10 +4,10 @@ namespace App\Http\Controllers\V1;
 
 use App\Helpers\NoteHelper;
 use App\Services\NotesService;
-use App\Services\UserService;
 use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use StellarSecurity\UserApiLaravel\UserService;
 
 class NotesController
 {
@@ -97,7 +97,6 @@ class NotesController
         $token = $request->bearerToken();
 
         $user = $this->userService->token($token)->object();
-
 
         if(!isset($user->token->id)) {
             return response()->json(['response_message' => 'Token not found'], 400);
