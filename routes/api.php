@@ -22,9 +22,9 @@ Route::prefix('v1')->group(function () {
 
     // Notes API – E2EE payloads only (server never sees plaintext)
     // Throttled, but more relaxed to allow sync/usage:
-    // max 80 requests per minute per client
+    // max 200 requests per minute per client
     Route::prefix('notescontroller')
-        ->middleware('throttle:80,1')
+        ->middleware('throttle:200,1')
         ->group(function () {
             Route::post('/upload', [NotesController::class, 'upload']);         // Upload encrypted notes from client
             Route::post('/sync-plan', [NotesController::class, 'sync']);        // Get sync plan (what to push/pull)
