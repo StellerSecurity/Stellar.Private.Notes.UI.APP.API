@@ -14,14 +14,11 @@ class NotesController
 
     private NotesService $notesService;
 
-    private NoteHelper $noteHelper;
-
     private UserService $userService;
 
-    public function __construct(NotesService $notesService, NoteHelper $noteHelper, UserService $userService)
+    public function __construct(NotesService $notesService, UserService $userService)
     {
         $this->notesService = $notesService;
-        $this->noteHelper = $noteHelper;
         $this->userService = $userService;
     }
 
