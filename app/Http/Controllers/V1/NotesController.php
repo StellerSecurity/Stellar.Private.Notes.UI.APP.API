@@ -37,8 +37,8 @@ class NotesController
 
         $user = $this->userService->token($token)->object();
 
-        if(!isset($user->token->id)) {
-            return response()->json(null, 400);
+        if(!$user || !isset($user->token->id)) {
+            return response()->json(null, 401);
         }
 
         $user_id = $user->token->tokenable_id;
