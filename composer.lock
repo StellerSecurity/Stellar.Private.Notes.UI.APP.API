@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "0a6aac2ad25474f79208308e5b53f7ba",
+    "content-hash": "be8196b98e1fa4546bdee423a0142506",
     "packages": [
         {
             "name": "brick/math",
@@ -3335,6 +3335,48 @@
                 "source": "https://github.com/ramsey/uuid/tree/4.8.1"
             },
             "time": "2025-06-01T06:28:46+00:00"
+        },
+        {
+            "name": "stellarsecurity/application-insights-laravel",
+            "version": "v1.0.1",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/stellar-security-os/stellarsecurity-application-insights-laravel.git",
+                "reference": "b9fe6118657e3d221a7fa6f90fa167603d03a992"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/stellar-security-os/stellarsecurity-application-insights-laravel/zipball/b9fe6118657e3d221a7fa6f90fa167603d03a992",
+                "reference": "b9fe6118657e3d221a7fa6f90fa167603d03a992",
+                "shasum": ""
+            },
+            "require": {
+                "guzzlehttp/guzzle": "^7.0|^8.0",
+                "php": ">=8.1"
+            },
+            "type": "library",
+            "extra": {
+                "laravel": {
+                    "providers": [
+                        "StellarSecurity\\ApplicationInsightsLaravel\\StellarAiServiceProvider"
+                    ]
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "StellarSecurity\\ApplicationInsightsLaravel\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "description": "Stellar Security - Application Insights style telemetry for Laravel (HTTP, DB, jobs, mail, dependencies).",
+            "support": {
+                "issues": "https://github.com/stellar-security-os/stellarsecurity-application-insights-laravel/issues",
+                "source": "https://github.com/stellar-security-os/stellarsecurity-application-insights-laravel/tree/v1.0.1"
+            },
+            "time": "2025-11-28T01:09:28+00:00"
         },
         {
             "name": "stellarsecurity/user-laravel",
