@@ -57,10 +57,14 @@ class LoginController extends Controller
 
         $token = $request->bearerToken();
 
+        if(empty($token)) {
+            return response()->json(null, 401);
+        }
+
         $user = $this->userService->token($token)->object();
 
         if (!isset($user->token->id)) {
-            return response()->json(null, 400);
+            return response()->json(null, 401);
         }
 
         $user_id = $user->token->tokenable_id;
