@@ -9,9 +9,9 @@ Route::prefix('v1')->group(function () {
 
     // Authentication & account-related endpoints
     // Throttled aggressively to slow down brute-force and abuse:
-    // max 10 requests per minute per client (IP by default)
+    // max 20 requests per minute per client (IP by default)
     Route::prefix('logincontroller')
-        ->middleware('throttle:10,1')
+        ->middleware('throttle:20,1')
         ->group(function () {
             Route::post('/create', [LoginController::class, 'create']);                     // Register / create account
             Route::post('/auth', [LoginController::class, 'auth']);                         // Login
