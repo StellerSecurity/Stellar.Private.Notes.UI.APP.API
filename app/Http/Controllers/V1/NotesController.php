@@ -2,111 +2,140 @@
 
 namespace App\Http\Controllers\V1;
 
-use App\Helpers\NoteHelper;
+use App\Http\Controllers\Controller;
 use App\Services\NotesService;
 use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use StellarSecurity\UserApiLaravel\UserService;
 
-class NotesController
+class NotesController extends Controller
 {
-
     private NotesService $notesService;
-
     private UserService $userService;
 
     public function __construct(NotesService $notesService, UserService $userService)
     {
         $this->notesService = $notesService;
-        $this->userService = $userService;
+        $this->userService  = $userService;
     }
 
     /**
-     * @param Request $request
-     * @return JsonResponse
      * @throws ConnectionException
      */
     public function upload(Request $request): JsonResponse
     {
-
         $token = $request->bearerToken();
 
-        $user = $this->userService->token($token)->object();
+        $userResponse = $this->userService->token($token);
 
-        if(!$user || !isset($user->token->id)) {
+        if ($userResponse->failed()) {
             return response()->json(null, 401);
         }
 
-        $user_id = $user->token->tokenable_id;
+        $user = $userResponse->object();
 
-        $data = $request->all();
+        if (! $user || ! isset($user->token->id)) {
+            return response()->json(null, 401);
+        }
+
+        $user_id      = $user->token->tokenable_id;
+        $data         = $request->all();
         $data['user_id'] = $user_id;
 
         $upload = $this->notesService->upload($data);
+
+        if ($upload->failed()) {
+            return response()->json(['response_message' => 'Notes service unavailable'], 502);
+        }
+
         return response()->json($upload->object());
     }
 
     public function sync(Request $request): JsonResponse
     {
+        $token        = $request->bearerToken();
+        $userResponse = $this->userService->token($token);
 
-        $token = $request->bearerToken();
-
-        $user = $this->userService->token($token)->object();
-
-        if(!isset($user->token->id)) {
-            return response()->json(null, 400);
+        if ($userResponse->failed()) {
+            return response()->json(null, 401);
         }
 
-        $user_id = $user->token->tokenable_id;
+        $user = $userResponse->object();
 
-        $data = $request->all();
+        if (! isset($user->token->id)) {
+            return response()->json(null, 401);
+        }
+
+        $user_id      = $user->token->tokenable_id;
+        $data         = $request->all();
         $data['user_id'] = $user_id;
 
         $sync = $this->notesService->sync($data);
+
+        if ($sync->failed()) {
+            return response()->json(['response_message' => 'Notes service unavailable'], 502);
+        }
+
         return response()->json($sync->object());
     }
 
     public function find(Request $request): JsonResponse
     {
+        $token        = $request->bearerToken();
+        $userResponse = $this->userService->token($token);
 
-        $token = $request->bearerToken();
+        if ($userResponse->failed()) {
+            return response()->json(null, 401);
+        }
 
-        $user = $this->userService->token($token)->object();
+        $user = $userResponse->object();
 
-        if(!isset($user->token->id)) {
-            return response()->json(null, 400);
+        if (! isset($user->token->id)) {
+            return response()->json(null, 401);
+        }
+
+        $noteId = $request->input('id');
+        if ($noteId === null) {
+            return response()->json(['response_message' => 'Note id missing'], 400);
         }
 
         $user_id = $user->token->tokenable_id;
 
-        $note = $this->notesService->find($request->input('id'), $user_id);
+        $note = $this->notesService->find($noteId, $user_id);
+
+        if ($note->failed()) {
+            return response()->json(['response_message' => 'Notes service unavailable'], 502);
+        }
+
         return response()->json($note->object());
     }
 
-    /**
-     * @param Request $request
-     * @return JsonResponse
-     */
     public function download(Request $request): JsonResponse
     {
+        $token        = $request->bearerToken();
+        $userResponse = $this->userService->token($token);
 
-        $token = $request->bearerToken();
-
-        $user = $this->userService->token($token)->object();
-
-        if(!isset($user->token->id)) {
-            return response()->json(['response_message' => 'Token not found'], 400);
+        if ($userResponse->failed()) {
+            return response()->json(['response_message' => 'Token not found'], 401);
         }
 
-        $user_id = $user->token->tokenable_id;
+        $user = $userResponse->object();
 
-        $data = $request->all();
+        if (! isset($user->token->id)) {
+            return response()->json(['response_message' => 'Token not found'], 401);
+        }
+
+        $user_id      = $user->token->tokenable_id;
+        $data         = $request->all();
         $data['user_id'] = $user_id;
 
         $download = $this->notesService->download($data);
+
+        if ($download->failed()) {
+            return response()->json(['response_message' => 'Notes service unavailable'], 502);
+        }
+
         return response()->json($download->object());
-
     }
-
 }
