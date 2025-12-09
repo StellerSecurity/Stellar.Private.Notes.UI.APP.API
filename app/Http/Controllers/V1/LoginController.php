@@ -10,38 +10,46 @@ use StellarSecurity\UserApiLaravel\UserService;
 
 class LoginController extends Controller
 {
-
     private string $token = "Stellar.Private.Notes.UI.APP.API";
 
     public function __construct(public UserService $userService)
     {
-
     }
 
     /**
-     * @param Request $request
-     * @return JsonResponse
+     * Authenticate user via UserService
      */
     public function auth(Request $request): JsonResponse
     {
         $username = $request->input('username');
         $password = $request->input('password');
 
-        $auth = $this->userService->auth([
+        if ($username === null || $password === null) {
+            return response()->json([
+                'response_code'    => 400,
+                'response_message' => 'Username or password missing',
+            ], 400);
+        }
+
+        $response = $this->userService->auth([
             'username' => $username,
             'password' => $password,
-            'token' => $this->token
-        ])->object();
+            'token'    => $this->token,
+        ]);
 
-        return response()->json($auth);
+        if ($response->failed()) {
+            return response()->json([
+                'response_code'    => 502,
+                'response_message' => 'User service unavailable',
+            ], 502);
+        }
+
+        return response()->json($response->object());
     }
 
     /**
-     *
      * Some users does not have eak/kdf etc - due to some of them might be registered on StellarSecurity.com,
      * or other places, so we use this method to make sure they have.
-     * @param Request $request
-     * @return JsonResponse
      */
     public function updateEak(Request $request): JsonResponse
     {
@@ -57,13 +65,19 @@ class LoginController extends Controller
 
         $token = $request->bearerToken();
 
-        if(empty($token)) {
+        if (empty($token)) {
             return response()->json(null, 401);
         }
 
-        $user = $this->userService->token($token)->object();
+        $userResponse = $this->userService->token($token);
 
-        if (!isset($user->token->id)) {
+        if ($userResponse->failed()) {
+            return response()->json(null, 401);
+        }
+
+        $user = $userResponse->object();
+
+        if (! isset($user->token->id)) {
             return response()->json(null, 401);
         }
 
@@ -81,62 +95,107 @@ class LoginController extends Controller
             'eak'            => $payload['eak'],
         ];
 
-        $user = $this->userService->patch($patchData)->object();
+        $patchResponse = $this->userService->patch($patchData);
 
-        return response()->json($user, 200);
+        if ($patchResponse->failed()) {
+            return response()->json([
+                'response_message' => 'User service unavailable',
+            ], 502);
+        }
+
+        return response()->json($patchResponse->object(), 200);
     }
-
 
     public function create(Request $request): JsonResponse
     {
-        $data = $request->all();
+        $data          = $request->all();
         $data['token'] = $this->token;
-        $auth = $this->userService->create($data)->object();
-        return response()->json($auth);
+
+        $response = $this->userService->create($data);
+
+        if ($response->failed()) {
+            return response()->json([
+                'response_message' => 'User service unavailable',
+            ], 502);
+        }
+
+        return response()->json($response->object());
     }
 
     public function sendresetpasswordlink(Request $request): JsonResponse
     {
-
         $email = $request->input('email');
 
-        if($email === null) {
-            return response()->json(['response_code' => 400, 'response_message' => 'No email was provided']);
+        if ($email === null) {
+            return response()->json([
+                'response_code'    => 400,
+                'response_message' => 'No email was provided',
+            ], 400);
         }
 
         $confirmation_code = Str::password(6, false, true, false, false);
-        $resetpassword = $this->userService->sendresetpasswordlink($email, $confirmation_code)->object();
 
-        if($resetpassword->response_code !== 200) {
-            return response()->json(['response_code' => $resetpassword->response_code, 'response_message' => $resetpassword->response_message]);
+        $response = $this->userService->sendresetpasswordlink($email, $confirmation_code);
+
+        if ($response->failed()) {
+            return response()->json([
+                'response_code'    => 502,
+                'response_message' => 'User service unavailable',
+            ], 502);
         }
 
-        return response()->json(['response_code' => 200, 'response_message' => 'OK. Reset password link sent to your email.']);
+        $resetpassword = $response->object();
+
+        if (isset($resetpassword->response_code) && $resetpassword->response_code !== 200) {
+            return response()->json([
+                'response_code'    => $resetpassword->response_code,
+                'response_message' => $resetpassword->response_message ?? 'Reset failed',
+            ], 400);
+        }
+
+        return response()->json([
+            'response_code'    => 200,
+            'response_message' => 'OK. Reset password link sent to your email.',
+        ]);
     }
 
-    public function resetpasswordupdate(Request $request)
+    public function resetpasswordupdate(Request $request): JsonResponse
     {
-        $email = $request->input('email');
+        $email             = $request->input('email');
         $confirmation_code = $request->input('confirmation_code');
-        $new_password = $request->input('new_password');
+        $new_password      = $request->input('new_password');
 
-        if($email === null) {
-            return response()->json(['response_code' => 400, 'response_message' => 'No email was provided']);
+        if ($email === null) {
+            return response()->json([
+                'response_code'    => 400,
+                'response_message' => 'No email was provided',
+            ], 400);
         }
 
-        if($new_password === null) {
-            return response()->json(['response_code' => 400, 'response_message' => 'New password not was provided']);
+        if ($new_password === null) {
+            return response()->json([
+                'response_code'    => 400,
+                'response_message' => 'New password was not provided',
+            ], 400);
         }
 
-        if($confirmation_code === null) {
-            return response()->json(['response_code' => 400, 'response_message' => 'No confirmation code was provided']);
+        if ($confirmation_code === null) {
+            return response()->json([
+                'response_code'    => 400,
+                'response_message' => 'No confirmation code was provided',
+            ], 400);
         }
 
-        $verifyandupdate = $this->userService->verifyresetpasswordconfirmationcode($email, $confirmation_code, $new_password)->object();
+        $response = $this->userService
+            ->verifyresetpasswordconfirmationcode($email, $confirmation_code, $new_password);
 
-        return response()->json($verifyandupdate);
+        if ($response->failed()) {
+            return response()->json([
+                'response_code'    => 502,
+                'response_message' => 'User service unavailable',
+            ], 502);
+        }
 
+        return response()->json($response->object());
     }
-
-
 }
