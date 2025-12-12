@@ -37,13 +37,6 @@ class LoginController extends Controller
             'token'    => $this->token,
         ]);
 
-        if ($response->failed()) {
-            return response()->json([
-                'response_code'    => 502,
-                'response_message' => 'User service unavailable',
-            ], 502);
-        }
-
         return response()->json($response->object());
     }
 
@@ -97,12 +90,6 @@ class LoginController extends Controller
 
         $patchResponse = $this->userService->patch($patchData);
 
-        if ($patchResponse->failed()) {
-            return response()->json([
-                'response_message' => 'User service unavailable',
-            ], 502);
-        }
-
         return response()->json($patchResponse->object(), 200);
     }
 
@@ -112,12 +99,6 @@ class LoginController extends Controller
         $data['token'] = $this->token;
 
         $response = $this->userService->create($data);
-
-        if ($response->failed()) {
-            return response()->json([
-                'response_message' => 'User service unavailable',
-            ], 502);
-        }
 
         return response()->json($response->object());
     }
@@ -136,13 +117,6 @@ class LoginController extends Controller
         $confirmation_code = Str::password(6, false, true, false, false);
 
         $response = $this->userService->sendresetpasswordlink($email, $confirmation_code);
-
-        if ($response->failed()) {
-            return response()->json([
-                'response_code'    => 502,
-                'response_message' => 'User service unavailable',
-            ], 502);
-        }
 
         $resetpassword = $response->object();
 
@@ -188,13 +162,6 @@ class LoginController extends Controller
 
         $response = $this->userService
             ->verifyresetpasswordconfirmationcode($email, $confirmation_code, $new_password);
-
-        if ($response->failed()) {
-            return response()->json([
-                'response_code'    => 502,
-                'response_message' => 'User service unavailable',
-            ], 502);
-        }
 
         return response()->json($response->object());
     }
