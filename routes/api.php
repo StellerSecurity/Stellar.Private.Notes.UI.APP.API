@@ -18,6 +18,8 @@ Route::prefix('v1')->group(function () {
             Route::patch('/updateEak', [LoginController::class, 'updateEak']);              // Attach/rotate EAK for zero-knowledge apps
             Route::post('/sendresetpasswordlink', [LoginController::class, 'sendresetpasswordlink']); // Send password reset link
             Route::post('/resetpasswordupdate', [LoginController::class, 'resetpasswordupdate']);     // Complete password reset
+            Route::post('/deleteuser', [LoginController::class, 'deleteuser']);                       // Delete authenticated user
+            Route::delete('/deleteuser', [LoginController::class, 'deleteuser']);                     // Delete authenticated user
         });
 
     // Notes API – E2EE payloads only (server never sees plaintext)

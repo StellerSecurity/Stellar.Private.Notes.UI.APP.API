@@ -165,4 +165,39 @@ class LoginController extends Controller
 
         return response()->json($response->object());
     }
+
+    public function deleteuser(Request $request): JsonResponse
+    {
+        $currentPassword = $request->input('current_password');
+
+        if ($currentPassword === null) {
+            return response()->json([
+                'response_code'    => 400,
+                'response_message' => 'Current password was not provided',
+            ], 400);
+        }
+
+        $token = $request->bearerToken();
+
+        if (empty($token)) {
+            return response()->json(null, 401);
+        }
+
+        $userResponse = $this->userService->token($token);
+
+        if ($userResponse->failed()) {
+            return response()->json(null, 401);
+        }
+
+        $user = $userResponse->object();
+
+        if (! isset($user->token->id)) {
+            return response()->json(null, 401);
+        }
+
+        $userId = $user->token->tokenable_id;
+        $response = $this->userService->deleteUser($userId, $currentPassword);
+
+        return response()->json($response->object(), $response->status());
+    }
 }
