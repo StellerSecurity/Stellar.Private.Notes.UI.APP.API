@@ -41,7 +41,7 @@ class NotesController extends Controller
         }
 
         $user_id         = $user->token->tokenable_id;
-        $data            = $this->normalizePinnedFavoriteFlags($request->all());
+        $data            = $this->normalizeNotesSyncPayload($request->all());
         $data['user_id'] = $user_id;
 
         $upload = $this->notesService->upload($data);
@@ -50,7 +50,7 @@ class NotesController extends Controller
             return response()->json(['response_message' => 'Notes service unavailable'], 502);
         }
 
-        return response()->json($this->normalizePinnedFavoriteFlags($upload->object()));
+        return response()->json($this->normalizeNotesSyncPayload($upload->object()));
     }
 
     public function sync(Request $request): JsonResponse
@@ -69,7 +69,7 @@ class NotesController extends Controller
         }
 
         $user_id         = $user->token->tokenable_id;
-        $data            = $this->normalizePinnedFavoriteFlags($request->all());
+        $data            = $this->normalizeNotesSyncPayload($request->all());
         $data['user_id'] = $user_id;
 
         $sync = $this->notesService->sync($data);
@@ -78,7 +78,7 @@ class NotesController extends Controller
             return response()->json(['response_message' => 'Notes service unavailable'], 502);
         }
 
-        return response()->json($this->normalizePinnedFavoriteFlags($sync->object()));
+        return response()->json($this->normalizeNotesSyncPayload($sync->object()));
     }
 
     public function find(Request $request): JsonResponse
@@ -109,7 +109,7 @@ class NotesController extends Controller
             return response()->json(['response_message' => 'Notes service unavailable'], 502);
         }
 
-        return response()->json($this->normalizePinnedFavoriteFlags($note->object()));
+        return response()->json($this->normalizeNotesSyncPayload($note->object()));
     }
 
     public function download(Request $request): JsonResponse
@@ -128,7 +128,7 @@ class NotesController extends Controller
         }
 
         $user_id         = $user->token->tokenable_id;
-        $data            = $this->normalizePinnedFavoriteFlags($request->all());
+        $data            = $this->normalizeNotesSyncPayload($request->all());
         $data['user_id'] = $user_id;
 
         $download = $this->notesService->download($data);
@@ -137,14 +137,14 @@ class NotesController extends Controller
             return response()->json(['response_message' => 'Notes service unavailable'], 502);
         }
 
-        return response()->json($this->normalizePinnedFavoriteFlags($download->object()));
+        return response()->json($this->normalizeNotesSyncPayload($download->object()));
     }
 
     /**
-     * Normalize pinned/favorite flags recursively so the UI API and Base API use
-     * consistent boolean values even when clients send string or numeric forms.
+     * Normalize note + folder sync payloads recursively so the UI API and Base API
+     * stay aligned across legacy and newer clients.
      */
-    private function normalizePinnedFavoriteFlags(mixed $value): mixed
+    private function normalizeNotesSyncPayload(mixed $value): mixed
     {
         if ($value instanceof JsonSerializable) {
             $value = $value->jsonSerialize();
@@ -159,7 +159,7 @@ class NotesController extends Controller
         }
 
         foreach ($value as $key => $item) {
-            if (in_array($key, ['pinned', 'favorite'], true)) {
+            if (in_array($key, ['pinned', 'favorite', 'deleted', 'protected', 'auto_wipe'], true)) {
                 $normalized = filter_var($item, FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE);
                 if ($normalized !== null) {
                     $value[$key] = $normalized;
@@ -167,7 +167,22 @@ class NotesController extends Controller
                 }
             }
 
-            $value[$key] = $this->normalizePinnedFavoriteFlags($item);
+            if (in_array($key, ['since', 'last_modified'], true) && is_numeric($item)) {
+                $value[$key] = (int) $item;
+                continue;
+            }
+
+            if ($key === 'folder_id' && ($item === '' || $item === false)) {
+                $value[$key] = null;
+                continue;
+            }
+
+            if ($key === 'folder' && $item === null) {
+                $value[$key] = '';
+                continue;
+            }
+
+            $value[$key] = $this->normalizeNotesSyncPayload($item);
         }
 
         return $value;
