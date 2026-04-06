@@ -7,6 +7,7 @@ use App\Services\NotesService;
 use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use JsonSerializable;
 use StellarSecurity\UserApiLaravel\UserService;
 
 class NotesController extends Controller
@@ -39,8 +40,8 @@ class NotesController extends Controller
             return response()->json(null, 401);
         }
 
-        $user_id      = $user->token->tokenable_id;
-        $data         = $request->all();
+        $user_id         = $user->token->tokenable_id;
+        $data            = $this->normalizePinnedFavoriteFlags($request->all());
         $data['user_id'] = $user_id;
 
         $upload = $this->notesService->upload($data);
@@ -49,7 +50,7 @@ class NotesController extends Controller
             return response()->json(['response_message' => 'Notes service unavailable'], 502);
         }
 
-        return response()->json($upload->object());
+        return response()->json($this->normalizePinnedFavoriteFlags($upload->object()));
     }
 
     public function sync(Request $request): JsonResponse
@@ -67,8 +68,8 @@ class NotesController extends Controller
             return response()->json(null, 401);
         }
 
-        $user_id      = $user->token->tokenable_id;
-        $data         = $request->all();
+        $user_id         = $user->token->tokenable_id;
+        $data            = $this->normalizePinnedFavoriteFlags($request->all());
         $data['user_id'] = $user_id;
 
         $sync = $this->notesService->sync($data);
@@ -77,7 +78,7 @@ class NotesController extends Controller
             return response()->json(['response_message' => 'Notes service unavailable'], 502);
         }
 
-        return response()->json($sync->object());
+        return response()->json($this->normalizePinnedFavoriteFlags($sync->object()));
     }
 
     public function find(Request $request): JsonResponse
@@ -108,7 +109,7 @@ class NotesController extends Controller
             return response()->json(['response_message' => 'Notes service unavailable'], 502);
         }
 
-        return response()->json($note->object());
+        return response()->json($this->normalizePinnedFavoriteFlags($note->object()));
     }
 
     public function download(Request $request): JsonResponse
@@ -126,8 +127,8 @@ class NotesController extends Controller
             return response()->json(['response_message' => 'Token not found'], 401);
         }
 
-        $user_id      = $user->token->tokenable_id;
-        $data         = $request->all();
+        $user_id         = $user->token->tokenable_id;
+        $data            = $this->normalizePinnedFavoriteFlags($request->all());
         $data['user_id'] = $user_id;
 
         $download = $this->notesService->download($data);
@@ -136,6 +137,39 @@ class NotesController extends Controller
             return response()->json(['response_message' => 'Notes service unavailable'], 502);
         }
 
-        return response()->json($download->object());
+        return response()->json($this->normalizePinnedFavoriteFlags($download->object()));
+    }
+
+    /**
+     * Normalize pinned/favorite flags recursively so the UI API and Base API use
+     * consistent boolean values even when clients send string or numeric forms.
+     */
+    private function normalizePinnedFavoriteFlags(mixed $value): mixed
+    {
+        if ($value instanceof JsonSerializable) {
+            $value = $value->jsonSerialize();
+        }
+
+        if (is_object($value)) {
+            $value = (array) $value;
+        }
+
+        if (! is_array($value)) {
+            return $value;
+        }
+
+        foreach ($value as $key => $item) {
+            if (in_array($key, ['pinned', 'favorite'], true)) {
+                $normalized = filter_var($item, FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE);
+                if ($normalized !== null) {
+                    $value[$key] = $normalized;
+                    continue;
+                }
+            }
+
+            $value[$key] = $this->normalizePinnedFavoriteFlags($item);
+        }
+
+        return $value;
     }
 }
