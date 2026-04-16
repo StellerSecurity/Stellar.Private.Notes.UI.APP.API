@@ -185,6 +185,52 @@ class NotesController extends Controller
             $value[$key] = $this->normalizeNotesSyncPayload($item);
         }
 
+        if (array_key_exists('notes', $value) && is_array($value['notes'])) {
+            $value['notes'] = $this->dedupeByIdAndLastModified($value['notes'], 'id');
+        }
+
+        if (array_key_exists('folders', $value) && is_array($value['folders'])) {
+            $value['folders'] = $this->dedupeByIdAndLastModified($value['folders'], 'id');
+        }
+
         return $value;
+    }
+
+    /**
+     * Keep only one record per id and let the highest last_modified win.
+     * If last_modified is equal, the last occurrence wins deterministically.
+     */
+    private function dedupeByIdAndLastModified(array $items, string $idKey): array
+    {
+        $deduped = [];
+
+        foreach ($items as $item) {
+            if ($item instanceof JsonSerializable) {
+                $item = $item->jsonSerialize();
+            }
+
+            if (is_object($item)) {
+                $item = (array) $item;
+            }
+
+            if (! is_array($item)) {
+                continue;
+            }
+
+            $id = trim((string) ($item[$idKey] ?? ''));
+            if ($id === '') {
+                continue;
+            }
+
+            $currentLastModified = (int) ($item['last_modified'] ?? 0);
+            $existing = $deduped[$id] ?? null;
+            $existingLastModified = (int) (($existing['last_modified'] ?? 0));
+
+            if ($existing === null || $currentLastModified >= $existingLastModified) {
+                $deduped[$id] = $item;
+            }
+        }
+
+        return array_values($deduped);
     }
 }
