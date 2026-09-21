@@ -29,6 +29,10 @@ class NotesService
             $response = Http::withBasicAuth(getenv($this->username_key), getenv($this->password_key))->retry(3)->timeout(15)
                 ->post($this->base_url . "v1/notecontroller/upload", $data);
         } catch (RequestException | ConnectionException $exception) {
+            if (($data['require_note_ack'] ?? false) === true && $exception instanceof RequestException
+                && $exception->response->status() === 409) {
+                return $exception->response;
+            }
             return null;
         }
         return $response;
