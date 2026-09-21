@@ -42,6 +42,15 @@ stages:
       workingDirectory: $(rootFolder)
       displayName: 'Use PHP version $(phpVersion)'
 
+    - script: |
+        set -e
+        php tests/controller-contract.php
+        php tests/realtime-security-contract.php
+        php -l app/Services/NotesRealtimeService.php
+        php -l app/Http/Controllers/V1/NotesRealtimeController.php
+      workingDirectory: $(rootFolder)
+      displayName: 'Verify legacy API and realtime isolation contracts'
+
     - script: composer install --no-interaction --prefer-dist --optimize-autoloader
       workingDirectory: $(rootFolder)
       displayName: 'Composer install'

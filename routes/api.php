@@ -34,3 +34,7 @@ Route::prefix('v1')->group(function () {
             Route::post('/find', [NotesController::class, 'find']);             // Search/filter notes (still encrypted payloads)
         });
 });
+
+// Additive endpoint. Old apps retain their existing contracts.
+Route::post('v1/notescontroller/realtime', [\App\Http\Controllers\V1\NotesRealtimeController::class, 'negotiate'])
+    ->middleware('throttle:20,1');
