@@ -28,7 +28,7 @@ class NotesService
         try {
             $response = Http::withBasicAuth(getenv($this->username_key), getenv($this->password_key))->retry(3)->timeout(15)
                 ->post($this->base_url . "v1/notecontroller/upload", $data);
-        } catch (RequestException $exception) {
+        } catch (RequestException | ConnectionException $exception) {
             return null;
         }
         return $response;
@@ -39,7 +39,7 @@ class NotesService
         try {
             $response = Http::withBasicAuth(getenv($this->username_key), getenv($this->password_key))->retry(3)->timeout(15)
                 ->post($this->base_url . "v1/notecontroller/download", $data);
-        } catch (RequestException $exception) {
+        } catch (RequestException | ConnectionException $exception) {
             return null;
         }
         return $response;
@@ -50,7 +50,7 @@ class NotesService
         try {
             $response = Http::withBasicAuth(getenv($this->username_key), getenv($this->password_key))->retry(3)->timeout(15)
                 ->post($this->base_url . "v1/notecontroller/find", ['id' => $id, 'user_id' => $user_id]);
-        } catch (RequestException $exception) {
+        } catch (RequestException | ConnectionException $exception) {
             return null;
         }
         return $response;
@@ -61,7 +61,7 @@ class NotesService
         try {
             $response = Http::withBasicAuth(getenv($this->username_key), getenv($this->password_key))->retry(3)->timeout(15)
                 ->post($this->base_url . "v1/notecontroller/sync-plan", $data);
-        } catch (RequestException $exception) {
+        } catch (RequestException | ConnectionException $exception) {
             return null;
         }
         return $response;

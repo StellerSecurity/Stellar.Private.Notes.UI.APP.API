@@ -30,7 +30,7 @@ class NotesController extends Controller
 
         $userResponse = $this->userService->token($token);
 
-        if ($userResponse->failed()) {
+        if ($userResponse === null || $userResponse->failed()) {
             return response()->json(null, 401);
         }
 
@@ -46,7 +46,7 @@ class NotesController extends Controller
 
         $upload = $this->notesService->upload($data);
 
-        if ($upload->failed()) {
+        if ($upload === null || $upload->failed()) {
             return response()->json(['response_message' => 'Notes service unavailable'], 502);
         }
 
@@ -58,7 +58,7 @@ class NotesController extends Controller
         $token        = $request->bearerToken();
         $userResponse = $this->userService->token($token);
 
-        if ($userResponse->failed()) {
+        if ($userResponse === null || $userResponse->failed()) {
             return response()->json(null, 401);
         }
 
@@ -74,7 +74,7 @@ class NotesController extends Controller
 
         $sync = $this->notesService->sync($data);
 
-        if ($sync->failed()) {
+        if ($sync === null || $sync->failed()) {
             return response()->json(['response_message' => 'Notes service unavailable'], 502);
         }
 
@@ -86,7 +86,7 @@ class NotesController extends Controller
         $token        = $request->bearerToken();
         $userResponse = $this->userService->token($token);
 
-        if ($userResponse->failed()) {
+        if ($userResponse === null || $userResponse->failed()) {
             return response()->json(null, 401);
         }
 
@@ -105,7 +105,7 @@ class NotesController extends Controller
 
         $note = $this->notesService->find($noteId, $user_id);
 
-        if ($note->failed()) {
+        if ($note === null || $note->failed()) {
             return response()->json(['response_message' => 'Notes service unavailable'], 502);
         }
 
@@ -117,7 +117,7 @@ class NotesController extends Controller
         $token        = $request->bearerToken();
         $userResponse = $this->userService->token($token);
 
-        if ($userResponse->failed()) {
+        if ($userResponse === null || $userResponse->failed()) {
             return response()->json(['response_message' => 'Token not found'], 401);
         }
 
@@ -133,7 +133,7 @@ class NotesController extends Controller
 
         $download = $this->notesService->download($data);
 
-        if ($download->failed()) {
+        if ($download === null || $download->failed()) {
             return response()->json(['response_message' => 'Notes service unavailable'], 502);
         }
 
