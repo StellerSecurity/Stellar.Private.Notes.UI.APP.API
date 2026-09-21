@@ -28,6 +28,7 @@ class NotesController extends Controller
     {
         $token = $request->bearerToken();
 
+        if (!is_string($token) || $token === '') return response()->json(null, 401);
         $userResponse = $this->userService->token($token);
 
         if ($userResponse === null || $userResponse->failed()) {
@@ -36,7 +37,7 @@ class NotesController extends Controller
 
         $user = $userResponse->object();
 
-        if (! $user || ! isset($user->token->id)) {
+        if (! $user || ! $this->hasValidIdentity($user)) {
             return response()->json(null, 401);
         }
 
@@ -46,6 +47,9 @@ class NotesController extends Controller
 
         $upload = $this->notesService->upload($data);
 
+        if (($data['require_note_ack'] ?? false) === true && $upload !== null && $upload->status() === 409) {
+            return response()->json($upload->object(), 409);
+        }
         if ($upload === null || $upload->failed()) {
             return response()->json(['response_message' => 'Notes service unavailable'], 502);
         }
@@ -56,6 +60,7 @@ class NotesController extends Controller
     public function sync(Request $request): JsonResponse
     {
         $token        = $request->bearerToken();
+        if (!is_string($token) || $token === '') return response()->json(null, 401);
         $userResponse = $this->userService->token($token);
 
         if ($userResponse === null || $userResponse->failed()) {
@@ -64,7 +69,7 @@ class NotesController extends Controller
 
         $user = $userResponse->object();
 
-        if (! isset($user->token->id)) {
+        if (! $this->hasValidIdentity($user)) {
             return response()->json(null, 401);
         }
 
@@ -84,6 +89,7 @@ class NotesController extends Controller
     public function find(Request $request): JsonResponse
     {
         $token        = $request->bearerToken();
+        if (!is_string($token) || $token === '') return response()->json(null, 401);
         $userResponse = $this->userService->token($token);
 
         if ($userResponse === null || $userResponse->failed()) {
@@ -92,12 +98,12 @@ class NotesController extends Controller
 
         $user = $userResponse->object();
 
-        if (! isset($user->token->id)) {
+        if (! $this->hasValidIdentity($user)) {
             return response()->json(null, 401);
         }
 
         $noteId = $request->input('id');
-        if ($noteId === null) {
+        if ((!is_string($noteId) && !is_int($noteId)) || (string)$noteId === '') {
             return response()->json(['response_message' => 'Note id missing'], 400);
         }
 
@@ -115,6 +121,7 @@ class NotesController extends Controller
     public function download(Request $request): JsonResponse
     {
         $token        = $request->bearerToken();
+        if (!is_string($token) || $token === '') return response()->json(null, 401);
         $userResponse = $this->userService->token($token);
 
         if ($userResponse === null || $userResponse->failed()) {
@@ -123,7 +130,7 @@ class NotesController extends Controller
 
         $user = $userResponse->object();
 
-        if (! isset($user->token->id)) {
+        if (! $this->hasValidIdentity($user)) {
             return response()->json(['response_message' => 'Token not found'], 401);
         }
 
@@ -138,6 +145,13 @@ class NotesController extends Controller
         }
 
         return response()->json($this->normalizeNotesSyncPayload($download->object()));
+    }
+
+    private function hasValidIdentity(mixed $user): bool
+    {
+        $id = $user->token->tokenable_id ?? null;
+        return isset($user->token->id) && (is_int($id) || is_string($id)) &&
+            filter_var($id, FILTER_VALIDATE_INT, ['options' => ['min_range' => 1]]) !== false;
     }
 
     /**
