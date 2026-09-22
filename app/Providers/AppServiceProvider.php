@@ -1,6 +1,6 @@
 <?php
 
-namespace app\Providers;
+namespace App\Providers;
 
 use Illuminate\Support\ServiceProvider;
 
@@ -11,7 +11,7 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        //
+        $this->app->bind(\StellarSecurity\UserApiLaravel\UserService::class, \App\Services\NotesUserService::class);
     }
 
     /**

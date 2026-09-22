@@ -54,6 +54,7 @@ class NotesController extends Controller
             return response()->json(['response_message' => 'Notes service unavailable'], 502);
         }
 
+        $this->notifyNotesChanged((string)$user_id);
         return response()->json($this->normalizeNotesSyncPayload($upload->object()));
     }
 
@@ -83,6 +84,7 @@ class NotesController extends Controller
             return response()->json(['response_message' => 'Notes service unavailable'], 502);
         }
 
+        if (!empty($data['deleted_ids']) || !empty($data['deleted_folder_ids'])) $this->notifyNotesChanged((string)$user_id);
         return response()->json($this->normalizeNotesSyncPayload($sync->object()));
     }
 
@@ -145,6 +147,18 @@ class NotesController extends Controller
         }
 
         return response()->json($this->normalizeNotesSyncPayload($download->object()));
+    }
+
+    private function notifyNotesChanged(string $userId): void
+    {
+        try {
+            // Run after the response; an optional notification never delays/fails saving.
+            $app = app();
+            if (!config('realtime.enabled')) return;
+            $app->terminating(static function () use ($userId) {
+                try { app(\App\Services\NotesRealtimeService::class)->changed($userId); } catch (\Throwable $error) {}
+            });
+        } catch (\Throwable $error) {}
     }
 
     private function hasValidIdentity(mixed $user): bool
