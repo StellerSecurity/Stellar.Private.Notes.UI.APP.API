@@ -51,7 +51,7 @@ stages:
       workingDirectory: $(rootFolder)
       displayName: 'Verify legacy API and realtime isolation contracts'
 
-    - script: composer install --no-interaction --prefer-dist --optimize-autoloader
+    - script: composer install --no-dev --no-plugins --no-interaction --prefer-dist --optimize-autoloader
       workingDirectory: $(rootFolder)
       displayName: 'Composer install'
 
