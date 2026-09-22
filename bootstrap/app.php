@@ -32,10 +32,26 @@ return Application::configure(basePath: dirname(__DIR__))
             | Request::HEADER_X_FORWARDED_PROTO
         );
 
-        // You can also configure global middleware or middleware groups here later, e.g.:
-        // $middleware->append(\App\Http\Middleware\YourGlobalMiddleware::class);
+        // Encrypted note payloads are opaque. Preserve whitespace and explicit empty values.
+        $notesRequest = fn (Request $request) => $request->is('api/v1/notescontroller/*');
+        $middleware->trimStrings(except: [$notesRequest]);
+        $middleware->convertEmptyStringsToNull(except: [$notesRequest]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
-        // Register custom exception handling, report/renderer callbacks, etc. here if needed.
+        // Laravel's routing pipeline renders exceptions before outer middleware
+        // can catch them. Register here so actual upstream failures stay controlled.
+        $exceptions->render(function (\Illuminate\Http\Client\RequestException|\Illuminate\Http\Client\ConnectionException $error, Request $request) {
+            if ($request->is('api/*')) return (new \App\Support\UpstreamServiceErrors())->render($request, $error);
+        });
+        // Upstream exception messages can contain response bodies and token URLs.
+        // Record only the failure category, never the original exception object.
+        $exceptions->report(function (\Illuminate\Http\Client\RequestException $error) {
+            \Illuminate\Support\Facades\Log::warning('Upstream HTTP request failed', ['upstream_status' => $error->response->status()]);
+            return false;
+        });
+        $exceptions->report(function (\Illuminate\Http\Client\ConnectionException $error) {
+            \Illuminate\Support\Facades\Log::warning('Upstream connection failed');
+            return false;
+        });
     })
     ->create();
