@@ -46,6 +46,7 @@ stages:
     - script: |
         set -e
         php tests/controller-contract.php
+        php tests/performance-meter.php
         php tests/realtime-security-contract.php
         php tests/upstream-errors-contract.php
         php -l app/Services/NotesRealtimeService.php
@@ -60,6 +61,7 @@ stages:
     - script: |
         set -eu
         composer check-platform-reqs --no-dev --no-plugins --no-scripts
+        php tests/performance-runtime.php
         env -i PATH="$PATH" TMPDIR="$(Agent.TempDirectory)" STELLAR_RUNTIME_TEST=1 php tests/runtime-compatibility.php
       workingDirectory: $(rootFolder)
       displayName: 'Test real Laravel runtime with isolated synthetic data'
