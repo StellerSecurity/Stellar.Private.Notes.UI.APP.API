@@ -44,6 +44,7 @@ namespace {
  $addresses=[];for($i=1;$i<=1000;$i++)$addresses[]=\App\Services\NotesRealtimeService::channel((string)$i,120,'synthetic-test-key');
  check(count(array_unique($addresses))===1000,'1000 users produce distinct addresses');
  check(\App\Services\NotesRealtimeService::channel('11',120,'synthetic-test-key')!==\App\Services\NotesRealtimeService::channel('11',180,'synthetic-test-key'),'expired address no longer receives subsequent-minute notifications');
+ check(\App\Services\NotesRealtimeService::channel('11',149,'synthetic-test-key')!==\App\Services\NotesRealtimeService::channel('11',150,'synthetic-test-key'),'old address stops receiving hints at the 30-second boundary');
  $subjects=[];
  foreach(['A','A-desktop-2','A-mobile-1','A-mobile-2'] as $deviceToken){
   $grant=$controller->negotiate(new \Illuminate\Http\Request($deviceToken),$users,$service);

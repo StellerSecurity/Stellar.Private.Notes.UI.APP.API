@@ -6,12 +6,13 @@ use Illuminate\Support\Facades\Http;
 /** Optional hints only. Never carries note content, IDs or app authentication tokens. */
 class NotesRealtimeService
 {
+    public const ADDRESS_TTL_SECONDS = 30;
     public static function channel(string $userId, int $now, string $key): string
     {
         if ($key === '' || !ctype_digit($userId) || (int)$userId < 1) throw new \InvalidArgumentException('Invalid realtime identity');
         // Tokens expiring does not necessarily disconnect an existing WebSocket.
-        // Publishing only to this minute's address bounds access even for a hostile client.
-        return hash_hmac('sha256', 'notes:'.intdiv($now, 60).':'.$userId, $key);
+        // Publishing only to this short-lived address bounds access even for a hostile client.
+        return hash_hmac('sha256', 'notes-v2:'.intdiv($now, self::ADDRESS_TTL_SECONDS).':'.$userId, $key);
     }
     public function enabled(): bool
     {
@@ -40,7 +41,7 @@ class NotesRealtimeService
     {
         if (!$this->enabled()) return ['enabled' => false];
         $now = time();
-        $expires = (intdiv($now, 60) + 1) * 60;
+        $expires = (intdiv($now, self::ADDRESS_TTL_SECONDS) + 1) * self::ADDRESS_TTL_SECONDS;
         // Avoid issuing a grant that expires during network transit.
         if ($expires - $now < 5) return ['enabled' => false, 'retry_after_ms' => 5000];
         $endpoint = config('realtime.endpoint');
