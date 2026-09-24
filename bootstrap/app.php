@@ -24,6 +24,7 @@ return Application::configure(basePath: dirname(__DIR__))
          * If you later want to lock this down even more, you can replace '*' with a list
          * of specific proxy IPs or CIDR ranges, or wire it to an env variable.
          */
+        $middleware->prepend(\App\Http\Middleware\MeasurePerformance::class);
         $middleware->trustProxies(
             at: '*',
             headers: Request::HEADER_X_FORWARDED_FOR
