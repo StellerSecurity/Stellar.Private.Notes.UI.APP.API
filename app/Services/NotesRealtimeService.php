@@ -6,6 +6,10 @@ use Illuminate\Support\Facades\Http;
 /** Optional hints only. Never carries note content, IDs or app authentication tokens. */
 class NotesRealtimeService
 {
+    private const ALLOWED_CUSTOM_ENDPOINTS = [
+        'https://stellar-notes-realtime-prod.stellarsecurity.com',
+    ];
+
     public const ADDRESS_TTL_SECONDS = 30;
     public static function channel(string $userId, int $now, string $key): string
     {
@@ -17,8 +21,13 @@ class NotesRealtimeService
     public function enabled(): bool
     {
         return config('realtime.enabled') === true
-            && preg_match('~^https://[a-z0-9-]+\.webpubsub\.azure\.com$~D', (string)config('realtime.endpoint')) === 1
+            && $this->validEndpoint((string)config('realtime.endpoint'))
             && config('realtime.scope_key') !== '';
+    }
+    private function validEndpoint(string $endpoint): bool
+    {
+        return preg_match('~^https://[a-z0-9-]+\.webpubsub\.azure\.com$~D', $endpoint) === 1
+            || in_array($endpoint, self::ALLOWED_CUSTOM_ENDPOINTS, true);
     }
     private function identityToken(): string
     {
