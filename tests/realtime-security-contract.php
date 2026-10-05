@@ -27,6 +27,15 @@ namespace {
  require __DIR__.'/../app/Services/NotesRealtimeService.php';
  require __DIR__.'/../app/Http/Controllers/V1/NotesRealtimeController.php';
  function check($value,$label){if(!$value)throw new \RuntimeException($label);echo "PASS: $label\n";}
+ $realService=new \App\Services\NotesRealtimeService;
+ check($realService->enabled()===true,'old Azure realtime endpoint remains enabled');
+ $settings['realtime.endpoint']='https://stellar-notes-realtime-prod.stellarsecurity.com';
+ check($realService->enabled()===true,'custom realtime endpoint is enabled');
+ foreach(['https://attacker.webpubsub.azure.com.evil.invalid','https://stellar-notes-realtime-prod.stellarsecurity.com.evil.invalid','http://stellar-notes-realtime-prod.stellarsecurity.com'] as $endpoint){
+  $settings['realtime.endpoint']=$endpoint;
+  check($realService->enabled()===false,'unapproved realtime endpoint rejected: '.$endpoint);
+ }
+ $settings['realtime.endpoint']='https://test.webpubsub.azure.com';
  $service=new class extends \App\Services\NotesRealtimeService {
   public array $ids=[];
   public function negotiate(string $id):array{$this->ids[]=$id;return ['enabled'=>true,'subject'=>self::channel($id,120,'synthetic-test-key')];}
