@@ -57,7 +57,7 @@ try {
             $captured[]=$request->data();
             $action=basename($request->url());
             $body=$action==='upload' ? ['ok'=>true] : ['notes'=>[['id'=>'test-note','text'=>"  cipher\nline two\nline three  ",'favorite'=>false]], 'folders'=>[]];
-            return Illuminate\Support\Facades\Http::response($notesStatus===200 ? $body : ['message'=>'PRIVATE notes body'], $notesStatus);
+            return Illuminate\Support\Facades\Http::response($notesStatus===200 ? $body : ($notesStatus===409 ? ['ok'=>false,'note_ack_v1'=>false] : ['message'=>'PRIVATE notes body']), $notesStatus);
         }
         throw new RuntimeCheckFailure('unexpected outbound HTTP denied');
     });
