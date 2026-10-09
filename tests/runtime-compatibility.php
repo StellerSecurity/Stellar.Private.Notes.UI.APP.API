@@ -93,6 +93,9 @@ try {
     checkRuntime($call('download')[0]===502,'network outage preserves login failure category');
     $connectionFailure=false; $notesStatus=503;
     checkRuntime($call('upload',['notes'=>[$note]])[0]===502,'failed save never returns success');
+    $notesStatus=409; $before=count($captured);
+    checkRuntime($call('upload',['notes'=>[$note],'require_note_ack'=>true])[0]===409,'modern upload conflict reaches client unchanged');
+    checkRuntime(count($captured)===$before+1,'conflicting upload only calls core once');
     $notesStatus=200;
     checkRuntime($call('realtime')===[200,['enabled'=>false]],'disabled realtime retains polling fallback contract');
     checkRuntime($call('download')[0]===200,'polling recovers after transient failure');

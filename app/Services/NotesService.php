@@ -26,7 +26,11 @@ class NotesService
     public function upload(array $data): PromiseInterface|Response|null
     {
         try {
-            $response = Http::withBasicAuth(getenv($this->username_key), getenv($this->password_key))->retry(3)->timeout(15)
+            $response = Http::withBasicAuth(getenv($this->username_key), getenv($this->password_key))
+                // A conflict is a final application response. Retrying the same
+                // snapshot only repeats row locks and cannot resolve its version.
+                ->retry(3, 0, static fn (\Exception $error) => !($error instanceof RequestException && $error->response->status() === 409))
+                ->timeout(15)
                 ->post($this->base_url . "v1/notecontroller/upload", $data);
         } catch (RequestException | ConnectionException $exception) {
             if (($data['require_note_ack'] ?? false) === true && $exception instanceof RequestException
