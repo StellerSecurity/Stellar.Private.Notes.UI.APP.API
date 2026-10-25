@@ -90,7 +90,7 @@ class LoginController extends Controller
 
         $patchResponse = $this->userService->patch($patchData);
 
-        return response()->json($patchResponse->object(), 200);
+        return response()->json($patchResponse->object(), $patchResponse->status());
     }
 
     public function create(Request $request): JsonResponse
@@ -195,8 +195,7 @@ class LoginController extends Controller
             return response()->json(null, 401);
         }
 
-        $userId = $user->token->tokenable_id;
-        $response = $this->userService->deleteUser($userId, $currentPassword);
+        $response = app(\App\Services\NotesUserService::class)->deleteAccountForSession($token, $currentPassword);
 
         return response()->json($response->object(), $response->status());
     }

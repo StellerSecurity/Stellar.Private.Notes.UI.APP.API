@@ -3,7 +3,7 @@ namespace Illuminate\Http {
     class Request {public function __construct(private string $path='api/v1/notescontroller/download'){} public function is($pattern){return fnmatch($pattern,$this->path);}}
 }
 namespace Illuminate\Http\Client {
-    class Response {public function __construct(private int $code=200){} public function status(){return $this->code;}}
+    class Response {public function __construct(private int $code=200){} public function status(){return $this->code;} public function successful(){return $this->code>=200 && $this->code<300;} public function object(){return (object)[];}}
     class ConnectionException extends \RuntimeException {}
     class RequestException extends \RuntimeException {public function __construct(public Response $response){parent::__construct('PRIVATE upstream body and credentials');}}
 }

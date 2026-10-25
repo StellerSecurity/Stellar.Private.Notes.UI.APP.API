@@ -46,12 +46,12 @@ try {
     };
     Illuminate\Support\Facades\Log::swap($logs);
     checkRuntime($app->make(StellarSecurity\UserApiLaravel\UserService::class) instanceof App\Services\NotesUserService, 'real service provider binds safe identity client');
-    $userStatus=200; $notesStatus=200; $captured=[]; $urls=[]; $userId='11'; $connectionFailure=false;
-    Illuminate\Support\Facades\Http::fake(function ($request) use (&$userStatus,&$notesStatus,&$captured,&$urls,&$userId,&$connectionFailure) {
+    $userStatus=200; $notesStatus=200; $captured=[]; $urls=[]; $userId='11'; $connectionFailure=false; $legacyMetadata=false;
+    Illuminate\Support\Facades\Http::fake(function ($request) use (&$userStatus,&$notesStatus,&$captured,&$urls,&$userId,&$connectionFailure,&$legacyMetadata) {
         $urls[]=$request->url();
         if (str_starts_with($request->url(),'http://stellar-user.invalid/api/v1/personaltokencontroller/')) {
             if ($connectionFailure) throw new Illuminate\Http\Client\ConnectionException('PRIVATE synthetic token URL');
-            return Illuminate\Support\Facades\Http::response($userStatus===200 ? ['token'=>['id'=>1,'tokenable_id'=>$userId]] : ['message'=>'PRIVATE upstream body'], $userStatus);
+            return Illuminate\Support\Facades\Http::response($userStatus===200 ? ['token'=>['id'=>1,'tokenable_id'=>$userId]+($legacyMetadata ? ['created_at'=>'2020-01-01T00:00:00Z','expires_at'=>'2021-01-01T00:00:00Z'] : ['abilities'=>['*']])] : ['message'=>'PRIVATE upstream body'], $userStatus);
         }
         if (str_starts_with($request->url(),'http://stellar-notes.invalid/api/v1/notecontroller/')) {
             $captured[]=$request->data();
@@ -99,6 +99,12 @@ try {
     $notesStatus=200;
     checkRuntime($call('realtime')===[200,['enabled'=>false]],'disabled realtime retains polling fallback contract');
     checkRuntime($call('download')[0]===200,'polling recovers after transient failure');
+    $legacyMetadata=true;
+    foreach (['upload','download','find','sync-plan'] as $action) {
+        checkRuntime($call($action,['id'=>'test-note','notes'=>[$note]])[0]===200,'existing legacy session with old timestamps and no abilities can '.$action.' without login');
+        checkRuntime(end($captured)['user_id']==='11','legacy '.$action.' preserves authenticated account');
+    }
+    $legacyMetadata=false;
     $logged=json_encode($logs->entries);
     checkRuntime(count($logs->entries)>=8,'upstream failures retain sanitized diagnostics');
     checkRuntime(!str_contains($logged,'PRIVATE') && !str_contains($logged,'synthetic-token') && !str_contains($logged,'runtime-password'),'failure logs exclude upstream bodies and credentials');
