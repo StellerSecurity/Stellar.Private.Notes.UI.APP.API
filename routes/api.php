@@ -15,14 +15,14 @@ Route::prefix('v1')->group(function () {
         ->group(function () {
             Route::post('/create', [LoginController::class, 'create']);                     // Register / create account
             Route::post('/auth', [LoginController::class, 'auth']);                         // Login
-            Route::patch('/updateEak', [LoginController::class, 'updateEak']);              // Attach/rotate EAK for zero-knowledge apps
+            Route::patch('/updateEak', [LoginController::class, 'updateEak']);              // Initialize legacy EAK; existing keys cannot be replaced
             Route::post('/sendresetpasswordlink', [LoginController::class, 'sendresetpasswordlink']); // Send password reset link
             Route::post('/resetpasswordupdate', [LoginController::class, 'resetpasswordupdate']);     // Complete password reset
             Route::post('/deleteuser', [LoginController::class, 'deleteuser']);                       // Delete authenticated user
             Route::delete('/deleteuser', [LoginController::class, 'deleteuser']);                     // Delete authenticated user
         });
 
-    // Notes API – E2EE payloads only (server never sees plaintext)
+    // Notes API – client-encrypted payloads; legacy password envelopes remain server-decryptable
     // Throttled, but more relaxed to allow sync/usage:
     // max 200 requests per minute per client
     Route::prefix('notescontroller')

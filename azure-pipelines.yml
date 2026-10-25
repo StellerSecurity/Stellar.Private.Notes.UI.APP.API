@@ -63,6 +63,7 @@ stages:
         composer check-platform-reqs --no-dev --no-plugins --no-scripts
         php tests/performance-runtime.php
         php tests/upload-retry-runtime.php
+        env -i PATH="$PATH" STELLAR_RUNTIME_TEST=1 php tests/key-management-runtime.php
         env -i PATH="$PATH" TMPDIR="$(Agent.TempDirectory)" STELLAR_RUNTIME_TEST=1 php tests/runtime-compatibility.php
       workingDirectory: $(rootFolder)
       displayName: 'Test real Laravel runtime with isolated synthetic data'
