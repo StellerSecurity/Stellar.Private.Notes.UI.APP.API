@@ -77,7 +77,7 @@ try {
     $before = count($forwarded);
     $response = $gateway->deleteuser($request);
     applicationSame($response->getStatusCode(), 422, 'deletion failure status crosses both services unchanged');
-    applicationSame(count($forwarded), $before + 1, 'failed deletion is sent once');
+    applicationSame(count($forwarded), $before + 2, 'deletion is checked once and sent once');
     applicationSame($owner->fresh() !== null, true, 'wrong password cannot delete the owner');
     $request = Illuminate\Http\Request::create('/api/v1/logincontroller/deleteuser', 'POST', ['current_password' => 'gateway-password', 'user_id' => $other->getKey()], [], [], ['HTTP_AUTHORIZATION' => 'Bearer '.$token]);
     $response = $gateway->deleteuser($request);

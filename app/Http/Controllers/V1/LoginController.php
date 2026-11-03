@@ -184,6 +184,18 @@ class LoginController extends Controller
             return response()->json(null, 401);
         }
 
+        $userResponse = $this->userService->token($token);
+
+        if ($userResponse->failed()) {
+            return response()->json(null, 401);
+        }
+
+        $user = $userResponse->object();
+
+        if (! isset($user->token->id)) {
+            return response()->json(null, 401);
+        }
+
         $response = $this->userService->deleteAccount($token, $currentPassword);
 
         return response()->json($response->object(), $response->status());
