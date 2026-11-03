@@ -77,6 +77,7 @@ class LoginController extends Controller
         $user_id = $user->token->tokenable_id;
 
         $patchData = [
+            'access_token'   => $token,
             'id'             => $user_id,
             'crypto_version' => $payload['crypto_version'],
             'kdf_params'     => [
@@ -90,7 +91,7 @@ class LoginController extends Controller
 
         $patchResponse = $this->userService->patch($patchData);
 
-        return response()->json($patchResponse->object(), 200);
+        return response()->json($patchResponse->object(), $patchResponse->status());
     }
 
     public function create(Request $request): JsonResponse
@@ -179,24 +180,11 @@ class LoginController extends Controller
 
         $token = $request->bearerToken();
 
-        if (empty($token)) {
+        if (! is_string($token) || ! preg_match('/^(?:[1-9][0-9]{0,19}\|)?[A-Za-z0-9]{40}$/D', $token)) {
             return response()->json(null, 401);
         }
 
-        $userResponse = $this->userService->token($token);
-
-        if ($userResponse->failed()) {
-            return response()->json(null, 401);
-        }
-
-        $user = $userResponse->object();
-
-        if (! isset($user->token->id)) {
-            return response()->json(null, 401);
-        }
-
-        $userId = $user->token->tokenable_id;
-        $response = $this->userService->deleteUser($userId, $currentPassword);
+        $response = $this->userService->deleteAccount($token, $currentPassword);
 
         return response()->json($response->object(), $response->status());
     }

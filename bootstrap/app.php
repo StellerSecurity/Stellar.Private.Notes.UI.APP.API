@@ -35,7 +35,7 @@ return Application::configure(basePath: dirname(__DIR__))
 
         // Encrypted note payloads are opaque. Preserve whitespace and explicit empty values.
         $notesRequest = fn (Request $request) => $request->is('api/v1/notescontroller/*');
-        $middleware->trimStrings(except: [$notesRequest]);
+        $middleware->trimStrings(except: ['new_password', $notesRequest]);
         $middleware->convertEmptyStringsToNull(except: [$notesRequest]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
