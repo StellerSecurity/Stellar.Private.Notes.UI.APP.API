@@ -9,12 +9,15 @@
     ],
     "license": "MIT",
     "require": {
-        "php": "^8.2",
-        "laravel/framework": "^12.0",
+        "laravel/framework": "12.70.1",
         "laravel/sanctum": "^4.0",
         "laravel/tinker": "^2.10.1",
+        "league/commonmark": "2.10.7",
+        "league/flysystem": "3.36.0",
+        "nesbot/carbon": "3.14.2",
+        "php": "^8.2",
         "stellarsecurity/application-insights-laravel": "^1.0",
-        "stellarsecurity/user-laravel": "1.0.4"
+        "stellarsecurity/user-laravel": "1.0.6"
     },
     "require-dev": {
         "fakerphp/faker": "^1.23",
@@ -22,7 +25,8 @@
         "laravel/sail": "^1.41",
         "mockery/mockery": "^1.6",
         "nunomaduro/collision": "^8.6",
-        "phpunit/phpunit": "^11.5.3"
+        "phpunit/phpunit": "^11.5.3",
+        "symfony/yaml": "7.4.22"
     },
     "autoload": {
         "psr-4": {

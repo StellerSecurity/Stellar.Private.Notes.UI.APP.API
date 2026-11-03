@@ -25,7 +25,12 @@ $app->instance('config', new Repository(['stellar-user'=>['base_url'=>'https://s
     'username_env'=>'STELLAR_SYNTHETIC_USERNAME', 'password_env'=>'STELLAR_SYNTHETIC_PASSWORD']]));
 $app->instance(Illuminate\Contracts\Routing\ResponseFactory::class,
     (new ReflectionClass(Illuminate\Routing\ResponseFactory::class))->newInstanceWithoutConstructor());
-$app->instance(Illuminate\Http\Client\Factory::class, new Illuminate\Http\Client\Factory());
+$app->instance(Illuminate\Http\Client\Factory::class, new class extends Illuminate\Http\Client\Factory {
+    protected function newPendingRequest()
+    {
+        return parent::newPendingRequest()->setHandler(fn () => throw new LogicException('Real HTTP is blocked.'));
+    }
+});
 $validator = new Illuminate\Validation\Factory(new Illuminate\Translation\Translator(new Illuminate\Translation\ArrayLoader(), 'en'), $app);
 Request::macro('validate', function (array $rules) use ($validator) { return $validator->make($this->all(),$rules)->validate(); });
 Http::preventStrayRequests();
@@ -39,7 +44,7 @@ Http::fake(function ($request) use (&$calls, &$status, &$abilities, &$legacyMeta
 });
 $service = new NotesUserService(); $app->instance(NotesUserService::class,$service);
 $controller = new LoginController($service);
-$request = function ($data, $token='77|synthetic-session') {
+$request = function ($data, $token='77|ssssssssssssssssssssssssssssssssssssssss') {
     $headers=[];
     if ($token !== null) $headers['HTTP_AUTHORIZATION']='Bearer '.$token;
     return Request::create('/synthetic','PATCH',$data,[],[],$headers);
@@ -65,7 +70,7 @@ foreach ([200,422,429,503] as $status) {
     $response=$controller->deleteuser($request(['current_password'=>'synthetic-password','user_id'=>999]));
     check($response->getStatusCode()===$status, 'deletion status '.$status.' preserved');
     check(count($calls)===2, 'deletion is sent once for status '.$status);
-    check($calls[1][1]===['access_token'=>'77|synthetic-session','current_password'=>'synthetic-password'], 'deletion sends session proof and never user_id');
+    check($calls[1][1]===['access_token'=>'77|ssssssssssssssssssssssssssssssssssssssss','current_password'=>'synthetic-password'], 'deletion sends session proof and never user_id');
 }
 $calls=[];
 check($controller->deleteuser($request(['current_password'=>'synthetic-password'],null))->getStatusCode()===401, 'missing token cannot delete account');

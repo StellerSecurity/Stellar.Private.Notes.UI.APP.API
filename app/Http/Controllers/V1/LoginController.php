@@ -77,6 +77,7 @@ class LoginController extends Controller
         $user_id = $user->token->tokenable_id;
 
         $patchData = [
+            'access_token'   => $token,
             'id'             => $user_id,
             'crypto_version' => $payload['crypto_version'],
             'kdf_params'     => [
@@ -179,7 +180,7 @@ class LoginController extends Controller
 
         $token = $request->bearerToken();
 
-        if (empty($token)) {
+        if (! is_string($token) || ! preg_match('/^(?:[1-9][0-9]{0,19}\|)?[A-Za-z0-9]{40}$/D', $token)) {
             return response()->json(null, 401);
         }
 
@@ -195,7 +196,7 @@ class LoginController extends Controller
             return response()->json(null, 401);
         }
 
-        $response = app(\App\Services\NotesUserService::class)->deleteAccountForSession($token, $currentPassword);
+        $response = $this->userService->deleteAccount($token, $currentPassword);
 
         return response()->json($response->object(), $response->status());
     }
