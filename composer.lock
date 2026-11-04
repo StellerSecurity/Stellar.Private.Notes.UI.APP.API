@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "9dd6ff76bb949bdd99cc8b633c42f6ec",
+    "content-hash": "9a1abb72e1da71fd421cc87ca0e4a2e7",
     "packages": [
         {
             "name": "brick/math",
@@ -3412,16 +3412,16 @@
         },
         {
             "name": "stellarsecurity/user-laravel",
-            "version": "1.0.6",
+            "version": "1.0.7",
             "source": {
                 "type": "git",
                 "url": "https://github.com/StellarSecurity-Packages/stellarsecurity-user-laravel.git",
-                "reference": "59ee77de6db72441deb484faa1a42eebc3c86eda"
+                "reference": "4c79a1108cb0466c4b9fd9f849836b5c0a40b424"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/StellarSecurity-Packages/stellarsecurity-user-laravel/zipball/59ee77de6db72441deb484faa1a42eebc3c86eda",
-                "reference": "59ee77de6db72441deb484faa1a42eebc3c86eda",
+                "url": "https://api.github.com/repos/StellarSecurity-Packages/stellarsecurity-user-laravel/zipball/4c79a1108cb0466c4b9fd9f849836b5c0a40b424",
+                "reference": "4c79a1108cb0466c4b9fd9f849836b5c0a40b424",
                 "shasum": ""
             },
             "require": {
@@ -3450,9 +3450,9 @@
             "description": "Stellar Security - User API client for Laravel (register, login, password reset, profile lookups).",
             "support": {
                 "issues": "https://github.com/StellarSecurity-Packages/stellarsecurity-user-laravel/issues",
-                "source": "https://github.com/StellarSecurity-Packages/stellarsecurity-user-laravel/tree/1.0.6"
+                "source": "https://github.com/StellarSecurity-Packages/stellarsecurity-user-laravel/tree/1.0.7"
             },
-            "time": "2026-11-03T01:53:54+00:00"
+            "time": "2026-11-03T23:06:35+00:00"
         },
         {
             "name": "symfony/clock",

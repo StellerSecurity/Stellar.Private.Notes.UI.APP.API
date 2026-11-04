@@ -17,7 +17,7 @@
         "nesbot/carbon": "3.14.2",
         "php": "^8.2",
         "stellarsecurity/application-insights-laravel": "^1.0",
-        "stellarsecurity/user-laravel": "1.0.6"
+        "stellarsecurity/user-laravel": "1.0.7"
     },
     "require-dev": {
         "fakerphp/faker": "^1.23",
