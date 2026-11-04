@@ -17,6 +17,10 @@ namespace StellarSecurity\UserApiLaravel {
     }
 }
 namespace {
+    function config($key, $default=null) {
+        if ($key !== 'identity.enabled') throw new \LogicException('Unexpected configuration key: '.$key);
+        return false;
+    }
     function response(){return new class {function json($data,$status=200,$headers=[]){return (object)compact('data','status','headers');}};}
     require __DIR__.'/../app/Support/UpstreamServiceErrors.php';
     require __DIR__.'/../app/Services/NotesUserService.php';
