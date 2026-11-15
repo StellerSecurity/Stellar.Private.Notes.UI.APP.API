@@ -69,6 +69,34 @@ same($controller->handle(methodRequest($body))->getStatusCode(), 503, 'disabled 
 same(count($seen), $before, 'disabled gateway makes no requests');
 $app['config']->set('identity.enabled', true);
 $status = 200;
+$router = new Illuminate\Routing\Router(new Illuminate\Events\Dispatcher($app), $app);
+Illuminate\Support\Facades\Route::swap($router);
+$router->prefix('api')->group(dirname(__DIR__).'/routes/api.php');
+foreach (['start', 'prove', 'finish'] as $step) {
+    $route = $router->getRoutes()->match(Illuminate\Http\Request::create('/api/v2/auth/account/enroll/'.$step, 'POST'));
+    same($route->parameter('flow'), 'enroll', 'real gateway route accepts enrollment '.$step);
+    same($route->parameter('step'), $step, 'real gateway route binds enrollment step');
+}
+$upstream = ['challengeId' => str_repeat('c', 64), 'loginResponse' => 'public-login-message'];
+$enrollment = ['challengeId' => str_repeat('c', 64), 'registrationRecord' => 'public-record',
+    'startLoginRequest' => 'public-message', 'keyEnvelope' => base64_encode(str_repeat('e', 60)), 'confirmationCode' => '12345678'];
+function enrollmentRequest(array $body): Illuminate\Http\Request {
+    $request = Illuminate\Http\Request::create('/api/v2/auth/account/enroll/prove', 'POST', [], [], [], ['CONTENT_TYPE' => 'application/json'], json_encode($body));
+    $route = new Illuminate\Routing\Route('POST', 'api/v2/auth/account/{flow}/{step}', fn () => null);
+    $route->bind($request);
+    $request->setRouteResolver(fn () => $route);
+    return $request;
+}
+same($controller->handle(enrollmentRequest($enrollment))->getStatusCode(), 200, 'confirmed enrollment forwards through the SDK');
+same(end($seen)[0]->data(), $enrollment, 'confirmation is forwarded without modifying crypto proofs');
+same(str_contains(end($seen)[0]->url(), '12345678'), false, 'confirmation code is absent from the URL');
+$before = count($seen);
+same($controller->handle(enrollmentRequest($enrollment + ['password' => 'must-not-leave-device']))->getStatusCode(), 401, 'enrollment rejects plaintext password fields');
+same(count($seen), $before, 'forbidden enrollment password never reaches User API');
+$missingCode = $enrollment;
+unset($missingCode['confirmationCode']);
+same($controller->handle(enrollmentRequest($missingCode))->getStatusCode(), 401, 'enrollment cannot bypass confirmation through the gateway');
+same(count($seen), $before, 'unconfirmed enrollment is rejected before HTTP');
 $service = new App\Services\NotesUserService();
 $token = '10|'.str_repeat('a', 40);
 $claims = ['accountId' => '72', 'tokenId' => '10', 'authVersion' => 2, 'abilities' => ['identity:session'], 'expiresAt' => gmdate('Y-m-d\TH:i:s\Z', time()+300)];
