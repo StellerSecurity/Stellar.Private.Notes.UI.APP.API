@@ -8,7 +8,7 @@ trigger:
 
 variables:
   # Azure Resource Manager connection created during pipeline creation
-  azureSubscription: '236719ec-5cab-4421-a60e-19b39c74e814'
+  azureSubscription: '93af539a-5371-44a9-9136-0377df111988'
 
   # Web app name
   webAppName: 'StellarPrivateNotesUIAPPAPIProd'
