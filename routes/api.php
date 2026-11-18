@@ -37,7 +37,7 @@ Route::prefix('v1')->group(function () {
 
 // Additive endpoint. Old apps retain their existing contracts.
 Route::post('v1/notescontroller/realtime', [\App\Http\Controllers\V1\NotesRealtimeController::class, 'negotiate'])
-    ->middleware('throttle:20,1');
+    ->middleware('throttle:20,1,notes-realtime:');
 
 Route::prefix('v2/auth')->middleware('throttle:60,1')->group(function () {
     Route::post('/account/{flow}/{step}', [\App\Http\Controllers\V2\IdentityController::class, 'handle'])
