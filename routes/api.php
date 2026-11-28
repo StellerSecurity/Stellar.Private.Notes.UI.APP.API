@@ -44,5 +44,5 @@ Route::prefix('v2/auth')->middleware('throttle:60,1')->group(function () {
         ->where('flow', 'register|enroll|password|recovery-setup|recover|delete')
         ->where('step', 'start|prove|finish');
     Route::post('/{operation}', [\App\Http\Controllers\V2\IdentityController::class, 'handle'])
-        ->where('operation', 'method|start|finish|session|logout');
+        ->where('operation', 'method|start|finish|finish-renewable|refresh|logout-refresh|session|logout');
 });
