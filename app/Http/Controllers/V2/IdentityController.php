@@ -43,7 +43,9 @@ final class IdentityController extends Controller
                 $expected = match ($operation) {
                     'method' => ['email', 'nonce'],
                     'start' => ['email', 'startLoginRequest'],
-                    'finish' => ['challengeId', 'finishLoginRequest'],
+                    'finish', 'finish-renewable' => ['challengeId', 'finishLoginRequest'],
+                    'refresh' => ['refreshToken', 'requestId'],
+                    'logout-refresh' => ['refreshToken'],
                     'session', 'logout' => ['token'],
                     default => throw new \InvalidArgumentException(),
                 };
@@ -57,6 +59,8 @@ final class IdentityController extends Controller
                     'method' => $this->users->getLoginMethod($body['email'], $body['nonce']),
                     'start' => $this->users->startOpaqueLogin($body['email'], $body['startLoginRequest']),
                     'finish' => $this->users->finishOpaqueLogin($body['challengeId'], $body['finishLoginRequest']),
+                    'finish-renewable', 'refresh', 'logout-refresh' => $this->users instanceof \App\Services\NotesUserService
+                        ? $this->users->renewableOpaqueSession($operation, $body) : throw new \RuntimeException(),
                     'session' => $this->users->inspectOpaqueSession($body['token']),
                     'logout' => $this->users->logoutOpaqueSession($body['token']),
                 };

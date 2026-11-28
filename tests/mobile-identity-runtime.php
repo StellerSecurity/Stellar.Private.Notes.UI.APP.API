@@ -32,7 +32,7 @@ $http->fake(function ($request, $options) use ($http, &$upstream, &$status, &$se
     return $http->response($upstream, $status);
 });
 Illuminate\Support\Facades\Http::swap($http);
-$controller = new App\Http\Controllers\V2\IdentityController(new StellarSecurity\UserApiLaravel\UserService());
+$controller = new App\Http\Controllers\V2\IdentityController(new App\Services\NotesUserService());
 $checks = 0;
 function same($actual, $expected, $label) {
     global $checks;
@@ -112,4 +112,15 @@ $upstream = ['accountId'=>'72','tokenId'=>'10','authVersion'=>1,'abilities'=>['*
 same($service->token($token)->status(), 200, 'legacy tokens work under new gate');
 $upstream['abilities'] = ['identity:session'];
 same($service->token($token)->status(), 401, 'legacy scoped token cannot gain notes access');
+foreach (['finish-renewable'=>['challengeId'=>'synthetic','finishLoginRequest'=>'synthetic-proof'],
+    'refresh'=>['refreshToken'=>str_repeat('a',32).'.'.str_repeat('b',43),'requestId'=>str_repeat('c',32)],
+    'logout-refresh'=>['refreshToken'=>str_repeat('a',32).'.'.str_repeat('b',43)]] as $operation=>$payload) {
+    $status=200;$upstream=['ok'=>true];
+    $request=Illuminate\Http\Request::create('/api/v2/auth/'.$operation,'POST',[],[],[],['CONTENT_TYPE'=>'application/json'],json_encode($payload));
+    $route=new Illuminate\Routing\Route('POST','api/v2/auth/{operation}',fn()=>null);$route->bind($request);$request->setRouteResolver(fn()=>$route);
+    $before=count($seen);same($controller->handle($request)->getStatusCode(),200,'renewal operation forwarded');
+    same(count($seen),$before+1,'renewal request sent once');same(end($seen)[0]->data(),$payload,'credential stays in exact JSON body');
+    same(end($seen)[1]['allow_redirects'],false,'renewal credentials never follow redirects');
+    same(str_contains(end($seen)[0]->url(),$payload['refreshToken']??'synthetic-proof'),false,'credentials absent from URL');
+}
 echo "PASS: $checks isolated mobile gateway checks; fake HTTP only.\n";

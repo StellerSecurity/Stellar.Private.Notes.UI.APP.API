@@ -6,6 +6,14 @@ use StellarSecurity\UserApiLaravel\UserService;
 
 class NotesUserService extends UserService
 {
+    public function renewableOpaqueSession(string $operation, #[\SensitiveParameter] array $body): Response
+    {
+        if (!in_array($operation, ['finish-renewable', 'refresh', 'logout-refresh'], true)) throw new \InvalidArgumentException();
+        // Client supplies a durable request ID for refresh retries. Never retry
+        // fresh login completion automatically or log credential payloads.
+        return $this->sessionClient()->post($this->baseUrl.'v2/auth/'.$operation, $body);
+    }
+
     protected function client()
     {
         return parent::client()->connectTimeout(5)->timeout(15);
